@@ -14,11 +14,11 @@ import PlatformWebView from '@/components/PlatformWebView';
 
 export default function BrowserScreen() {
   const { url: initialUrl } = useLocalSearchParams<{ url?: string }>();
-  const [url, setUrl] = useState('');
-  const [currentUrl, setCurrentUrl] = useState('');
+  const [url, setUrl] = useState('https://enter.vibz.world/login');
+  const [currentUrl, setCurrentUrl] = useState('https://enter.vibz.world/login');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showWebView, setShowWebView] = useState(false);
+  const [showWebView, setShowWebView] = useState(true);
   const webViewRef = useRef<any>(null);
 
   // Handle deep linking URL parameter
