@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import { Platform, View, StyleSheet, Text, Alert } from 'react-native';
+import { Platform, View, StyleSheet, Text, Alert, Share } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { initiateGoogleLogin } from '../utils/googleAuth';
 
@@ -232,6 +232,46 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
     }
   }, [ref]);
 
+  const sendMessageToWebView = (message: any) => {
+    if (webViewRef.current) {
+      const script = `
+        window.dispatchEvent(new MessageEvent('message', {
+          data: ${JSON.stringify(message)}
+        }));
+        true;
+      `;
+      webViewRef.current.injectJavaScript(script);
+    }
+  };
+
+  const handleShare = async (shareData: any) => {
+    try {
+      const { url, title, text } = shareData;
+
+      const shareOptions = {
+        title: title || 'Check this out!',
+        message: text ? `${text}\n\n${url}` : url,
+        url: url,
+      };
+
+      const result = await Share.share(shareOptions);
+
+      sendMessageToWebView({
+        type: 'shareResult',
+        success: true,
+        action: result.action,
+        activityType: result.activityType || null
+      });
+
+    } catch (error) {
+      sendMessageToWebView({
+        type: 'shareResult',
+        success: false,
+        error: error instanceof Error ? error.message : 'Share failed'
+      });
+    }
+  };
+
   const handleWebViewMessage = async (event: WebViewMessageEvent) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
@@ -257,6 +297,8 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
             true;
           `);
         }
+      } else if (data.type === 'share') {
+        await handleShare(data);
       }
     } catch (error) {
       console.error('Error handling WebView message:', error);
@@ -265,6 +307,8 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
   const injectedJavaScript = `
     (function() {
+      window.isReactNativeWebView = true;
+
       window.ReactNativeWebView = {
         postMessage: function(message) {
           if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
@@ -276,6 +320,15 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
       window.requestGoogleLogin = function() {
         window.ReactNativeWebView.postMessage(JSON.stringify({
           type: 'GOOGLE_LOGIN_REQUEST'
+        }));
+      };
+
+      window.shareContent = function(shareData) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'share',
+          url: shareData.url,
+          title: shareData.title,
+          text: shareData.text
         }));
       };
 
