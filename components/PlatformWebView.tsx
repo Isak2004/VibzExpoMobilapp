@@ -1,6 +1,7 @@
-import React from 'react';
-import { Platform, View, StyleSheet, Text } from 'react-native';
-import { WebView } from 'react-native-webview';
+import React, { useRef, useEffect } from 'react';
+import { Platform, View, StyleSheet, Text, Alert } from 'react-native';
+import { WebView, WebViewMessageEvent } from 'react-native-webview';
+import { initiateGoogleLogin } from '../utils/googleAuth';
 
 interface PlatformWebViewProps {
   source: { uri: string };
@@ -19,7 +20,7 @@ interface PlatformWebViewProps {
 }
 
 // Web-specific WebView component using iframe with complete fullscreen support
-const WebWebView = React.forwardRef<HTMLIFrameElement, PlatformWebViewProps>(
+const WebWebView = React.forwardRef<any, PlatformWebViewProps>(
   ({ source, style, onLoadStart, onLoadEnd, onError, onNavigationStateChange, ...props }, ref) => {
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
@@ -219,12 +220,84 @@ const WebWebView = React.forwardRef<HTMLIFrameElement, PlatformWebViewProps>(
 
 // Main PlatformWebView component
 const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref) => {
+  const webViewRef = useRef<WebView>(null);
+
+  useEffect(() => {
+    if (ref) {
+      if (typeof ref === 'function') {
+        ref(webViewRef.current);
+      } else {
+        (ref as React.MutableRefObject<any>).current = webViewRef.current;
+      }
+    }
+  }, [ref]);
+
+  const handleWebViewMessage = async (event: WebViewMessageEvent) => {
+    try {
+      const data = JSON.parse(event.nativeEvent.data);
+
+      if (data.type === 'GOOGLE_LOGIN_REQUEST') {
+        const result = await initiateGoogleLogin();
+
+        if (result.success && webViewRef.current) {
+          webViewRef.current.injectJavaScript(`
+            window.postMessage({
+              type: 'GOOGLE_LOGIN_SUCCESS',
+              accessToken: '${result.accessToken}',
+              idToken: '${result.idToken}'
+            }, '*');
+            true;
+          `);
+        } else if (webViewRef.current) {
+          webViewRef.current.injectJavaScript(`
+            window.postMessage({
+              type: 'GOOGLE_LOGIN_ERROR',
+              error: '${result.error || 'Login failed'}'
+            }, '*');
+            true;
+          `);
+        }
+      }
+    } catch (error) {
+      console.error('Error handling WebView message:', error);
+    }
+  };
+
+  const injectedJavaScript = `
+    (function() {
+      window.ReactNativeWebView = {
+        postMessage: function(message) {
+          if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+            window.ReactNativeWebView.postMessage(message);
+          }
+        }
+      };
+
+      window.requestGoogleLogin = function() {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'GOOGLE_LOGIN_REQUEST'
+        }));
+      };
+
+      console.log('VibzWorld WebView Bridge Initialized');
+    })();
+    true;
+  `;
+
   if (Platform.OS === 'web') {
     return <WebWebView {...props} ref={ref} />;
   }
 
-  // For mobile platforms, use react-native-webview
-  return <WebView {...props} ref={ref} />;
+  // For mobile platforms, use react-native-webview with OAuth support
+  return (
+    <WebView
+      {...props}
+      ref={webViewRef}
+      userAgent="VibzWorldApp/1.0"
+      onMessage={handleWebViewMessage}
+      injectedJavaScript={injectedJavaScript}
+    />
+  );
 });
 
 export default PlatformWebView;
