@@ -234,10 +234,14 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
   const sendMessageToWebView = (message: any) => {
     if (webViewRef.current) {
+      console.log('[Native App] Sending message to WebView:', message);
       const script = `
-        window.dispatchEvent(new MessageEvent('message', {
-          data: ${JSON.stringify(message)}
-        }));
+        (function() {
+          console.log('[WebView] Received message from native:', ${JSON.stringify(JSON.stringify(message))});
+          window.dispatchEvent(new MessageEvent('message', {
+            data: ${JSON.stringify(message)}
+          }));
+        })();
         true;
       `;
       webViewRef.current.injectJavaScript(script);
@@ -246,7 +250,18 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
   const handleShare = async (shareData: any) => {
     try {
+      console.log('[Native App] handleShare called with:', shareData);
       const { url, title, text } = shareData;
+
+      if (!url) {
+        console.error('[Native App] Share error: URL is required');
+        sendMessageToWebView({
+          type: 'shareResult',
+          success: false,
+          error: 'URL is required for sharing'
+        });
+        return;
+      }
 
       const shareOptions = {
         title: title || 'Check this out!',
@@ -254,7 +269,9 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
         url: url,
       };
 
+      console.log('[Native App] Calling Share.share with:', shareOptions);
       const result = await Share.share(shareOptions);
+      console.log('[Native App] Share result:', result);
 
       sendMessageToWebView({
         type: 'shareResult',
@@ -264,6 +281,7 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
       });
 
     } catch (error) {
+      console.error('[Native App] Share error:', error);
       sendMessageToWebView({
         type: 'shareResult',
         success: false,
@@ -274,7 +292,9 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
   const handleWebViewMessage = async (event: WebViewMessageEvent) => {
     try {
+      console.log('[Native App] Received message:', event.nativeEvent.data);
       const data = JSON.parse(event.nativeEvent.data);
+      console.log('[Native App] Parsed message:', data);
 
       if (data.type === 'GOOGLE_LOGIN_REQUEST') {
         const result = await initiateGoogleLogin();
@@ -298,41 +318,60 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
           `);
         }
       } else if (data.type === 'share') {
+        console.log('[Native App] Processing share request');
         await handleShare(data);
+      } else {
+        console.log('[Native App] Unknown message type:', data.type);
       }
     } catch (error) {
-      console.error('Error handling WebView message:', error);
+      console.error('[Native App] Error handling WebView message:', error);
+      sendMessageToWebView({
+        type: 'shareResult',
+        success: false,
+        error: 'Failed to parse message: ' + (error instanceof Error ? error.message : 'Unknown error')
+      });
     }
   };
 
   const injectedJavaScript = `
     (function() {
+      console.log('[WebView] Initializing bridge...');
       window.isReactNativeWebView = true;
 
+      // Store the native postMessage function
+      const nativePostMessage = window.ReactNativeWebView.postMessage.bind(window.ReactNativeWebView);
+
+      // Override with our wrapper
       window.ReactNativeWebView = {
-        postMessage: function(message) {
-          if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
-            window.ReactNativeWebView.postMessage(message);
-          }
-        }
+        postMessage: nativePostMessage
       };
 
       window.requestGoogleLogin = function() {
+        console.log('[WebView] requestGoogleLogin called');
         window.ReactNativeWebView.postMessage(JSON.stringify({
           type: 'GOOGLE_LOGIN_REQUEST'
         }));
       };
 
       window.shareContent = function(shareData) {
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: 'share',
-          url: shareData.url,
-          title: shareData.title,
-          text: shareData.text
-        }));
+        console.log('[WebView] shareContent called with:', shareData);
+        try {
+          const message = JSON.stringify({
+            type: 'share',
+            url: shareData.url,
+            title: shareData.title,
+            text: shareData.text
+          });
+          console.log('[WebView] Sending message:', message);
+          window.ReactNativeWebView.postMessage(message);
+        } catch (error) {
+          console.error('[WebView] Error in shareContent:', error);
+        }
       };
 
-      console.log('VibzWorld WebView Bridge Initialized');
+      console.log('[WebView] VibzWorld WebView Bridge Initialized');
+      console.log('[WebView] window.isReactNativeWebView:', window.isReactNativeWebView);
+      console.log('[WebView] window.shareContent:', typeof window.shareContent);
     })();
     true;
   `;
