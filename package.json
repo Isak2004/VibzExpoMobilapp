@@ -8,6 +8,11 @@
     "build:web": "expo export --platform web",
     "lint": "expo lint"
   },
+  "overrides": {
+    "lucide-react-native": {
+      "react": "19.1.0"
+    }
+  },
   "dependencies": {
     "@expo/vector-icons": "*",
     "@lucide/lab": "^0.1.2",
