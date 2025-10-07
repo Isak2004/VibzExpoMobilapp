@@ -248,6 +248,16 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
     }
   };
 
+  useEffect(() => {
+    if (ref) {
+      if (typeof ref === 'function') {
+        ref({ current: webViewRef.current, sendMessageToWebView });
+      } else {
+        (ref as any).current = { ...webViewRef.current, sendMessageToWebView };
+      }
+    }
+  }, [ref]);
+
   const handleShare = async (shareData: any) => {
     try {
       console.log('[Native App] handleShare called with:', shareData);

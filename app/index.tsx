@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import PlatformWebView from '@/components/PlatformWebView';
+import { useNotifications } from '@/hooks/useNotifications';
 
 export default function BrowserScreen() {
   const { url: initialUrl } = useLocalSearchParams<{ url?: string }>();
@@ -20,6 +21,7 @@ export default function BrowserScreen() {
   const [error, setError] = useState<string | null>(null);
   const [showWebView, setShowWebView] = useState(false);
   const webViewRef = useRef<any>(null);
+  const { expoPushToken, notification, notificationResponse } = useNotifications();
 
   // Handle deep linking URL parameter
   useEffect(() => {
@@ -31,6 +33,39 @@ export default function BrowserScreen() {
       setShowWebView(true);
     }
   }, [initialUrl]);
+
+  // Send push token to web app when it's ready
+  useEffect(() => {
+    if (expoPushToken && webViewRef.current && currentUrl) {
+      const message = {
+        type: 'pushToken',
+        token: expoPushToken
+      };
+      console.log('[Native App] Sending push token to web app:', message);
+      setTimeout(() => {
+        webViewRef.current?.sendMessageToWebView?.(message);
+      }, 2000);
+    }
+  }, [expoPushToken, currentUrl]);
+
+  // Handle notification taps
+  useEffect(() => {
+    if (notificationResponse && webViewRef.current) {
+      const message = {
+        type: 'notificationTapped',
+        data: notificationResponse.notification.request.content.data
+      };
+      console.log('[Native App] Notification tapped, sending to web app:', message);
+      webViewRef.current?.sendMessageToWebView?.(message);
+    }
+  }, [notificationResponse]);
+
+  // Log incoming notifications
+  useEffect(() => {
+    if (notification) {
+      console.log('[Native App] Notification received:', notification);
+    }
+  }, [notification]);
 
   const formatUrl = (inputUrl: string): string => {
     if (!inputUrl.trim()) return '';
