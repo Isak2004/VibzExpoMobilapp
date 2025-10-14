@@ -8,12 +8,18 @@ import { useDeepLinking } from '@/hooks/useDeepLinking';
 
 export default function RootLayout() {
   useFrameworkReady();
-  useDeepLinking();
+
+  // Temporarily disabled to debug
+  // useDeepLinking();
 
   useEffect(() => {
     if (Platform.OS === 'android') {
-      NavigationBar.setVisibilityAsync('hidden');
-      NavigationBar.setBehaviorAsync('inset-swipe');
+      NavigationBar.setVisibilityAsync('hidden').catch(err => {
+        console.log('Failed to hide navigation bar:', err);
+      });
+      NavigationBar.setBehaviorAsync('inset-swipe').catch(err => {
+        console.log('Failed to set navigation bar behavior:', err);
+      });
     }
   }, []);
 
