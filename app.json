@@ -30,7 +30,13 @@
           ],
           "category": ["BROWSABLE", "DEFAULT"]
         }
-      ]
+      ],
+      "androidStatusBar": {
+        "hidden": true
+      },
+      "androidNavigationBar": {
+        "visible": false
+      }
     },
     "web": {
       "bundler": "metro",
