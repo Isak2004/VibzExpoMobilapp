@@ -15,6 +15,12 @@
         "UIBackgroundModes": ["remote-notification"]
       }
     },
+    "androidStatusBar": {
+      "hidden": true
+    },
+    "androidNavigationBar": {
+      "visible": false
+    },
     "android": {
       "package": "com.example.browserapp",
       "adaptiveIcon": {
