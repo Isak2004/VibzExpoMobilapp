@@ -5,12 +5,14 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   Keyboard,
   Platform,
+  Pressable,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import PlatformWebView from '@/components/PlatformWebView';
+
+const DEFAULT_URL = 'https://loveappneo.vibz.world';
 
 export default function BrowserScreen() {
   const { url: initialUrl } = useLocalSearchParams<{ url?: string }>();
@@ -18,17 +20,19 @@ export default function BrowserScreen() {
   const [currentUrl, setCurrentUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showWebView, setShowWebView] = useState(false);
+  const [showNavigation, setShowNavigation] = useState(false);
   const webViewRef = useRef<any>(null);
 
-  // Handle deep linking URL parameter
+  // Start with default URL or handle deep linking
   useEffect(() => {
     if (initialUrl) {
       const decodedUrl = decodeURIComponent(initialUrl);
       const formattedUrl = formatUrl(decodedUrl);
       setUrl(decodedUrl);
       setCurrentUrl(formattedUrl);
-      setShowWebView(true);
+    } else {
+      setCurrentUrl(DEFAULT_URL);
+      setUrl(DEFAULT_URL);
     }
   }, [initialUrl]);
 
@@ -57,10 +61,10 @@ export default function BrowserScreen() {
   const handleUrlSubmit = () => {
     const formattedUrl = formatUrl(url);
     if (!formattedUrl) return;
-    
+
     setCurrentUrl(formattedUrl);
     setError(null);
-    setShowWebView(true);
+    setShowNavigation(false);
     Keyboard.dismiss();
   };
 
@@ -84,87 +88,14 @@ export default function BrowserScreen() {
     }
   };
 
-  const goHome = () => {
-    setShowWebView(false);
-    setCurrentUrl('');
-    setUrl('');
-    
-    // Exit fullscreen when going home
-    if (Platform.OS === 'web') {
-      if (document.fullscreenElement) {
-        document.exitFullscreen?.();
-      } else if ((document as any).webkitFullscreenElement) {
-        (document as any).webkitExitFullscreen?.();
-      } else if ((document as any).mozFullScreenElement) {
-        (document as any).mozCancelFullScreen?.();
-      } else if ((document as any).msFullscreenElement) {
-        (document as any).msExitFullscreen?.();
-      }
+  const handleScreenPress = () => {
+    if (!showNavigation) {
+      setShowNavigation(true);
     }
   };
 
-  // Add keyboard listener for ESC key to go home
-  useEffect(() => {
-    if (Platform.OS === 'web' && showWebView) {
-      const handleKeyPress = (event: KeyboardEvent) => {
-        if (event.key === 'Escape') {
-          goHome();
-        }
-      };
-
-      document.addEventListener('keydown', handleKeyPress);
-      return () => {
-        document.removeEventListener('keydown', handleKeyPress);
-      };
-    }
-  }, [showWebView]);
-
-  if (!showWebView) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centerContainer}>
-          <View style={styles.brandingContainer}>
-            <Text style={styles.appTitle}>Browser</Text>
-            <Text style={styles.appSubtitle}>Immersive fullscreen web browsing</Text>
-          </View>
-          
-          <View style={styles.urlContainer}>
-            <TextInput
-              style={styles.urlInput}
-              value={url}
-              onChangeText={setUrl}
-              placeholder="Search or enter website URL"
-              placeholderTextColor="#8E8E93"
-              keyboardType="web-search"
-              autoCorrect={false}
-              autoCapitalize="none"
-              returnKeyType="go"
-              onSubmitEditing={handleUrlSubmit}
-              autoFocus={!initialUrl} // Only auto-focus if not launched from deep link
-            />
-            <TouchableOpacity style={styles.goButton} onPress={handleUrlSubmit}>
-              <Text style={styles.goButtonText}>Go</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.featuresContainer}>
-            <Text style={styles.featureText}>
-              ✨ Automatic fullscreen mode for distraction-free browsing
-            </Text>
-            <Text style={styles.featureSubtext}>
-              Press ESC key to return home from any website
-            </Text>
-            <Text style={styles.deepLinkInfo}>
-              💡 Launch with URLs: browser-app://open?url=https://example.com
-            </Text>
-          </View>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   return (
-    <View style={styles.fullscreenContainer}>
+    <Pressable style={styles.fullscreenContainer} onPress={handleScreenPress}>
       <PlatformWebView
         ref={webViewRef}
         source={{ uri: currentUrl }}
@@ -180,116 +111,76 @@ export default function BrowserScreen() {
         bounces={false}
         allowsBackForwardNavigationGestures={true}
       />
-    </View>
+
+      {showNavigation && (
+        <View style={styles.navigationOverlay}>
+          <View style={styles.navigationBar}>
+            <TextInput
+              style={styles.navInput}
+              value={url}
+              onChangeText={setUrl}
+              placeholder="Enter URL"
+              placeholderTextColor="#999"
+              keyboardType="web-search"
+              autoCorrect={false}
+              autoCapitalize="none"
+              returnKeyType="go"
+              onSubmitEditing={handleUrlSubmit}
+              autoFocus
+            />
+            <TouchableOpacity style={styles.navGoButton} onPress={handleUrlSubmit}>
+              <Text style={styles.navGoButtonText}>Go</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F2F2F7',
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-  },
-  brandingContainer: {
-    alignItems: 'center',
-    marginBottom: 50,
-  },
-  appTitle: {
-    fontSize: 42,
-    fontWeight: '900',
-    color: '#000000',
-    marginBottom: 12,
-    letterSpacing: -2,
-  },
-  appSubtitle: {
-    fontSize: 20,
-    color: '#8E8E93',
-    textAlign: 'center',
-    fontWeight: '600',
-    letterSpacing: -0.5,
-  },
-  urlContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    backgroundColor: '#FFFFFF',
-    alignItems: 'center',
-    width: '100%',
-    maxWidth: 800,
-    borderRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    elevation: 12,
-    marginBottom: 32,
-  },
-  urlInput: {
-    flex: 1,
-    height: 52,
-    fontSize: 18,
-    color: '#000000',
-    paddingHorizontal: 20,
-    fontWeight: '500',
-  },
-  goButton: {
-    backgroundColor: '#007AFF',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 16,
-    shadowColor: '#007AFF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  goButtonText: {
-    color: '#FFFFFF',
-    fontSize: 18,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-  },
-  featuresContainer: {
-    alignItems: 'center',
-    maxWidth: 500,
-  },
-  featureText: {
-    fontSize: 16,
-    color: '#007AFF',
-    textAlign: 'center',
-    lineHeight: 24,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  featureSubtext: {
-    fontSize: 14,
-    color: '#8E8E93',
-    textAlign: 'center',
-    lineHeight: 20,
-    fontWeight: '500',
-    marginBottom: 12,
-  },
-  deepLinkInfo: {
-    fontSize: 13,
-    color: '#34C759',
-    textAlign: 'center',
-    lineHeight: 18,
-    fontWeight: '600',
-    fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
-  },
   fullscreenContainer: {
     flex: 1,
     backgroundColor: '#000000',
   },
   webView: {
     flex: 1,
+  },
+  navigationOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    paddingTop: Platform.OS === 'ios' ? 50 : 20,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  navigationBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  navInput: {
+    flex: 1,
+    height: 40,
+    fontSize: 16,
+    color: '#FFFFFF',
+    paddingHorizontal: 12,
+  },
+  navGoButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginLeft: 8,
+  },
+  navGoButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
