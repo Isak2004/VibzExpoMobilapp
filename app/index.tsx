@@ -88,9 +88,9 @@ export default function BrowserScreen() {
     setShowWebView(false);
     setCurrentUrl('');
     setUrl('');
-
-    // Exit fullscreen when going home (web only)
-    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+    
+    // Exit fullscreen when going home
+    if (Platform.OS === 'web') {
       if (document.fullscreenElement) {
         document.exitFullscreen?.();
       } else if ((document as any).webkitFullscreenElement) {
@@ -105,7 +105,7 @@ export default function BrowserScreen() {
 
   // Add keyboard listener for ESC key to go home
   useEffect(() => {
-    if (Platform.OS === 'web' && showWebView && typeof document !== 'undefined') {
+    if (Platform.OS === 'web' && showWebView) {
       const handleKeyPress = (event: KeyboardEvent) => {
         if (event.key === 'Escape') {
           goHome();

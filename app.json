@@ -10,23 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.example.browserapp",
-      "infoPlist": {
-        "UIBackgroundModes": ["remote-notification"]
-      }
-    },
-    "androidStatusBar": {
-      "hidden": true
-    },
-    "androidNavigationBar": {
-      "visible": false
+      "bundleIdentifier": "com.example.browserapp"
     },
     "android": {
       "package": "com.example.browserapp",
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#ffffff"
-      },
       "intentFilters": [
         {
           "action": "VIEW",
@@ -45,12 +32,6 @@
         }
       ]
     },
-    "notification": {
-      "icon": "./assets/images/icon.png",
-      "color": "#000000",
-      "androidMode": "default",
-      "androidCollapsedTitle": "#{unread_notifications} new notifications"
-    },
     "web": {
       "bundler": "metro",
       "output": "single",
@@ -59,11 +40,6 @@
     "plugins": ["expo-router", "expo-font", "expo-web-browser"],
     "experiments": {
       "typedRoutes": true
-    },
-    "extra": {
-      "eas": {
-        "projectId": "your-project-id-here"
-      }
     }
   }
 }

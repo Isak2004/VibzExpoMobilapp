@@ -20,7 +20,7 @@ interface PlatformWebViewProps {
 }
 
 // Web-specific WebView component using iframe with complete fullscreen support
-const WebWebView = Platform.OS === 'web' ? React.forwardRef<any, PlatformWebViewProps>(
+const WebWebView = React.forwardRef<any, PlatformWebViewProps>(
   ({ source, style, onLoadStart, onLoadEnd, onError, onNavigationStateChange, ...props }, ref) => {
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState<string | null>(null);
@@ -216,7 +216,7 @@ const WebWebView = Platform.OS === 'web' ? React.forwardRef<any, PlatformWebView
       </div>
     );
   }
-) : null;
+);
 
 // Main PlatformWebView component
 const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref) => {
@@ -247,16 +247,6 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
       webViewRef.current.injectJavaScript(script);
     }
   };
-
-  useEffect(() => {
-    if (ref) {
-      if (typeof ref === 'function') {
-        ref({ current: webViewRef.current, sendMessageToWebView });
-      } else {
-        (ref as any).current = { ...webViewRef.current, sendMessageToWebView };
-      }
-    }
-  }, [ref]);
 
   const handleShare = async (shareData: any) => {
     try {
@@ -386,7 +376,7 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
     true;
   `;
 
-  if (Platform.OS === 'web' && WebWebView) {
+  if (Platform.OS === 'web') {
     return <WebWebView {...props} ref={ref} />;
   }
 
