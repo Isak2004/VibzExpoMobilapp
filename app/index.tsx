@@ -21,13 +21,19 @@ export default function BrowserScreen() {
   const [showWebView, setShowWebView] = useState(false);
   const webViewRef = useRef<any>(null);
 
-  // Handle deep linking URL parameter
+  // Handle deep linking URL parameter and default start page
   useEffect(() => {
     if (initialUrl) {
       const decodedUrl = decodeURIComponent(initialUrl);
       const formattedUrl = formatUrl(decodedUrl);
       setUrl(decodedUrl);
       setCurrentUrl(formattedUrl);
+      setShowWebView(true);
+    } else {
+      // Navigate to default start page
+      const startPageUrl = 'https://loveappneo.vibz.world';
+      setUrl(startPageUrl);
+      setCurrentUrl(startPageUrl);
       setShowWebView(true);
     }
   }, [initialUrl]);
