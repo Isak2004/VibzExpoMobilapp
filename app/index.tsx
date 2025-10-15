@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -10,6 +10,7 @@ import {
   Keyboard,
   Platform,
 } from 'react-native';
+import * as Notifications from 'expo-notifications';
 import PlatformWebView from '@/components/PlatformWebView';
 
 const START_PAGE_URL = 'https://loveappneo.vibz.world';
@@ -20,8 +21,36 @@ export default function BrowserScreen() {
   const [showUrlModal, setShowUrlModal] = useState(false);
   const [urlInput, setUrlInput] = useState('');
   const [currentUrl, setCurrentUrl] = useState(START_PAGE_URL);
+  const [pushToken, setPushToken] = useState<string | null>(null);
 
   const tapTimestamps = useRef<number[]>([]);
+
+  useEffect(() => {
+    if (global.pushToken) {
+      setPushToken(global.pushToken);
+    }
+
+    const checkForNotificationData = setInterval(() => {
+      if (global.lastNotificationData && webViewRef.current) {
+        const notificationData = global.lastNotificationData;
+        console.log('Sending notification data to WebView:', notificationData);
+
+        const script = `
+          (function() {
+            window.dispatchEvent(new MessageEvent('message', {
+              data: ${JSON.stringify(notificationData)}
+            }));
+          })();
+          true;
+        `;
+        webViewRef.current.injectJavaScript(script);
+
+        global.lastNotificationData = null;
+      }
+    }, 500);
+
+    return () => clearInterval(checkForNotificationData);
+  }, []);
 
   const handleTripleTap = () => {
     const now = Date.now();
@@ -89,6 +118,7 @@ export default function BrowserScreen() {
             scalesPageToFit={true}
             bounces={false}
             allowsBackForwardNavigationGestures={true}
+            pushToken={pushToken}
           />
         </View>
       </TouchableWithoutFeedback>

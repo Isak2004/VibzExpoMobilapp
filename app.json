@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.example.browserapp"
+      "bundleIdentifier": "com.example.browserapp",
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"]
+      }
     },
     "android": {
       "package": "com.example.browserapp",
@@ -36,7 +39,13 @@
       },
       "androidNavigationBar": {
         "visible": false
-      }
+      },
+      "googleServicesFile": "./google-services.json",
+      "useNextNotificationsApi": true
+    },
+    "notification": {
+      "icon": "./assets/images/icon.png",
+      "color": "#007AFF"
     },
     "web": {
       "bundler": "metro",
