@@ -7,6 +7,7 @@
     "icon": "./assets/images/icon.png",
     "scheme": "vibzworld",
     "userInterfaceStyle": "automatic",
+    "projectID": "vibz-mobile",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
