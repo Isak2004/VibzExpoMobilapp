@@ -88,16 +88,14 @@ export default function BrowserScreen() {
     }
   };
 
-  const handleLongPress = () => {
-    setShowNavigation(true);
+  const handleScreenPress = () => {
+    if (!showNavigation) {
+      setShowNavigation(true);
+    }
   };
 
   return (
-    <Pressable
-      style={styles.fullscreenContainer}
-      onLongPress={handleLongPress}
-      delayLongPress={3000}
-    >
+    <Pressable style={styles.fullscreenContainer} onPress={handleScreenPress}>
       <PlatformWebView
         ref={webViewRef}
         source={{ uri: currentUrl }}
