@@ -1,25 +1,144 @@
-import React, { useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useRef, useState } from 'react';
+import {
+  View,
+  StyleSheet,
+  Modal,
+  TextInput,
+  TouchableOpacity,
+  Text,
+  TouchableWithoutFeedback,
+  Keyboard,
+  Platform,
+} from 'react-native';
 import PlatformWebView from '@/components/PlatformWebView';
 
 const START_PAGE_URL = 'https://loveappneo.vibz.world';
+const TRIPLE_TAP_DELAY = 400;
 
 export default function BrowserScreen() {
   const webViewRef = useRef<any>(null);
+  const [showUrlModal, setShowUrlModal] = useState(false);
+  const [urlInput, setUrlInput] = useState('');
+  const [currentUrl, setCurrentUrl] = useState(START_PAGE_URL);
+
+  const tapTimestamps = useRef<number[]>([]);
+
+  const handleTripleTap = () => {
+    const now = Date.now();
+    tapTimestamps.current.push(now);
+
+    if (tapTimestamps.current.length > 3) {
+      tapTimestamps.current.shift();
+    }
+
+    if (tapTimestamps.current.length === 3) {
+      const firstTap = tapTimestamps.current[0];
+      const lastTap = tapTimestamps.current[2];
+
+      if (lastTap - firstTap < TRIPLE_TAP_DELAY * 2) {
+        setUrlInput(currentUrl);
+        setShowUrlModal(true);
+        tapTimestamps.current = [];
+      }
+    }
+  };
+
+  const formatUrl = (inputUrl: string): string => {
+    if (!inputUrl.trim()) return '';
+
+    let cleanUrl = inputUrl.trim();
+
+    if (!cleanUrl.includes('.') || (cleanUrl.includes(' ') && cleanUrl.split(' ').length > 1)) {
+      return `https://www.google.com/search?q=${encodeURIComponent(cleanUrl)}`;
+    }
+
+    cleanUrl = cleanUrl.replace(/^https?:\/\//, '');
+
+    if (!cleanUrl.includes('://')) {
+      cleanUrl = 'https://' + cleanUrl;
+    }
+
+    return cleanUrl;
+  };
+
+  const handleNavigate = () => {
+    const formattedUrl = formatUrl(urlInput);
+    if (formattedUrl) {
+      setCurrentUrl(formattedUrl);
+      setShowUrlModal(false);
+      Keyboard.dismiss();
+    }
+  };
+
+  const handleCancel = () => {
+    setShowUrlModal(false);
+    Keyboard.dismiss();
+  };
 
   return (
     <View style={styles.container}>
-      <PlatformWebView
-        ref={webViewRef}
-        source={{ uri: START_PAGE_URL }}
-        style={styles.webView}
-        javaScriptEnabled={true}
-        domStorageEnabled={true}
-        startInLoadingState={true}
-        scalesPageToFit={true}
-        bounces={false}
-        allowsBackForwardNavigationGestures={true}
-      />
+      <TouchableWithoutFeedback onPress={handleTripleTap}>
+        <View style={styles.webViewContainer}>
+          <PlatformWebView
+            ref={webViewRef}
+            source={{ uri: currentUrl }}
+            style={styles.webView}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            startInLoadingState={true}
+            scalesPageToFit={true}
+            bounces={false}
+            allowsBackForwardNavigationGestures={true}
+          />
+        </View>
+      </TouchableWithoutFeedback>
+
+      <Modal
+        visible={showUrlModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCancel}
+      >
+        <TouchableWithoutFeedback onPress={handleCancel}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Navigate to URL</Text>
+
+                <TextInput
+                  style={styles.input}
+                  value={urlInput}
+                  onChangeText={setUrlInput}
+                  placeholder="Enter URL or search query"
+                  placeholderTextColor="#8E8E93"
+                  autoFocus={true}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="url"
+                  returnKeyType="go"
+                  onSubmitEditing={handleNavigate}
+                />
+
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={[styles.button, styles.cancelButton]}
+                    onPress={handleCancel}
+                  >
+                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={[styles.button, styles.goButton]}
+                    onPress={handleNavigate}
+                  >
+                    <Text style={styles.goButtonText}>Go</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </View>
   );
 }
@@ -29,7 +148,71 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
   },
+  webViewContainer: {
+    flex: 1,
+  },
   webView: {
     flex: 1,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 500,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  input: {
+    backgroundColor: '#F2F2F7',
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 16,
+    color: '#000000',
+    marginBottom: 20,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#F2F2F7',
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#000000',
+  },
+  goButton: {
+    backgroundColor: '#007AFF',
+  },
+  goButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
