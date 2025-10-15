@@ -64,12 +64,9 @@ const WebWebView = React.forwardRef<any, PlatformWebViewProps>(
       setLoading(false);
       setError(null);
       onLoadEnd?.();
-      
-      // Automatically enter fullscreen when website loads
-      setTimeout(() => {
-        enterFullscreen();
-      }, 800);
-      
+
+      enterFullscreen();
+
       onNavigationStateChange?.({
         url: currentUrl,
         canGoBack: false,
