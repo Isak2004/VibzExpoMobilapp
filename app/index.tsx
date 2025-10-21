@@ -16,6 +16,7 @@ const START_PAGE_URL = 'https://loveappneo.vibz.world';
 
 export default function BrowserScreen() {
   const webViewRef = useRef<any>(null);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const [showUrlModal, setShowUrlModal] = useState(false);
   const [urlInput, setUrlInput] = useState('');
   const [currentUrl, setCurrentUrl] = useState(START_PAGE_URL);
@@ -52,8 +53,33 @@ export default function BrowserScreen() {
     Keyboard.dismiss();
   };
 
+  const handleLongPress = () => {
+    setUrlInput(currentUrl);
+    setShowUrlModal(true);
+  };
+
+  const handleTouchStart = () => {
+    longPressTimer.current = setTimeout(() => {
+      handleLongPress();
+    }, 800);
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
   return (
     <View style={styles.container}>
+      <View
+        style={styles.hiddenTrigger}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        onTouchCancel={handleTouchEnd}
+      />
+
       <PlatformWebView
         ref={webViewRef}
         source={{ uri: currentUrl }}
@@ -120,6 +146,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
+  },
+  hiddenTrigger: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 60,
+    zIndex: 10,
+    backgroundColor: 'transparent',
   },
   webView: {
     flex: 1,
