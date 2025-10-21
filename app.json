@@ -7,14 +7,10 @@
     "icon": "./assets/images/icon.png",
     "scheme": "vibzworld",
     "userInterfaceStyle": "automatic",
-    "projectID": "vibz-mobile",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.example.browserapp",
-      "infoPlist": {
-        "UIBackgroundModes": ["remote-notification"]
-      }
+      "bundleIdentifier": "com.example.browserapp"
     },
     "android": {
       "package": "com.example.browserapp",
@@ -40,13 +36,7 @@
       },
       "androidNavigationBar": {
         "visible": false
-      },
-      "googleServicesFile": "./google-services.json",
-      "useNextNotificationsApi": true
-    },
-    "notification": {
-      "icon": "./assets/images/icon.png",
-      "color": "#007AFF"
+      }
     },
     "web": {
       "bundler": "metro",

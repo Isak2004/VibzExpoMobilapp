@@ -16,7 +16,6 @@ interface PlatformWebViewProps {
   scalesPageToFit?: boolean;
   bounces?: boolean;
   allowsBackForwardNavigationGestures?: boolean;
-  pushToken?: string | null;
   ref?: React.RefObject<any>;
 }
 
@@ -219,7 +218,6 @@ const WebWebView = React.forwardRef<any, PlatformWebViewProps>(
 // Main PlatformWebView component
 const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref) => {
   const webViewRef = useRef<WebView>(null);
-  const { pushToken } = props;
 
   useEffect(() => {
     if (ref) {
@@ -230,25 +228,6 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
       }
     }
   }, [ref]);
-
-  useEffect(() => {
-    if (pushToken && webViewRef.current) {
-      console.log('[Native App] Sending push token to WebView:', pushToken);
-      const script = `
-        (function() {
-          console.log('[WebView] Received push token from native');
-          window.dispatchEvent(new MessageEvent('message', {
-            data: {
-              type: 'pushToken',
-              token: '${pushToken}'
-            }
-          }));
-        })();
-        true;
-      `;
-      webViewRef.current.injectJavaScript(script);
-    }
-  }, [pushToken]);
 
   const sendMessageToWebView = (message: any) => {
     if (webViewRef.current) {
