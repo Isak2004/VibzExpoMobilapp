@@ -13,35 +13,12 @@ import {
 import PlatformWebView from '@/components/PlatformWebView';
 
 const START_PAGE_URL = 'https://loveappneo.vibz.world';
-const TRIPLE_TAP_DELAY = 400;
 
 export default function BrowserScreen() {
   const webViewRef = useRef<any>(null);
   const [showUrlModal, setShowUrlModal] = useState(false);
   const [urlInput, setUrlInput] = useState('');
   const [currentUrl, setCurrentUrl] = useState(START_PAGE_URL);
-
-  const tapTimestamps = useRef<number[]>([]);
-
-  const handleTripleTap = () => {
-    const now = Date.now();
-    tapTimestamps.current.push(now);
-
-    if (tapTimestamps.current.length > 3) {
-      tapTimestamps.current.shift();
-    }
-
-    if (tapTimestamps.current.length === 3) {
-      const firstTap = tapTimestamps.current[0];
-      const lastTap = tapTimestamps.current[2];
-
-      if (lastTap - firstTap < TRIPLE_TAP_DELAY * 2) {
-        setUrlInput(currentUrl);
-        setShowUrlModal(true);
-        tapTimestamps.current = [];
-      }
-    }
-  };
 
   const formatUrl = (inputUrl: string): string => {
     if (!inputUrl.trim()) return '';
@@ -77,21 +54,17 @@ export default function BrowserScreen() {
 
   return (
     <View style={styles.container}>
-      <TouchableWithoutFeedback onPress={handleTripleTap}>
-        <View style={styles.webViewContainer}>
-          <PlatformWebView
-            ref={webViewRef}
-            source={{ uri: currentUrl }}
-            style={styles.webView}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-            startInLoadingState={true}
-            scalesPageToFit={true}
-            bounces={false}
-            allowsBackForwardNavigationGestures={true}
-          />
-        </View>
-      </TouchableWithoutFeedback>
+      <PlatformWebView
+        ref={webViewRef}
+        source={{ uri: currentUrl }}
+        style={styles.webView}
+        javaScriptEnabled={true}
+        domStorageEnabled={true}
+        startInLoadingState={true}
+        scalesPageToFit={true}
+        bounces={false}
+        allowsBackForwardNavigationGestures={true}
+      />
 
       <Modal
         visible={showUrlModal}
@@ -147,9 +120,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
-  },
-  webViewContainer: {
-    flex: 1,
   },
   webView: {
     flex: 1,
