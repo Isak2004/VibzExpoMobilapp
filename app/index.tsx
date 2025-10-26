@@ -149,10 +149,10 @@ const styles = StyleSheet.create({
   },
   hiddenTrigger: {
     position: 'absolute',
-    top: 0,
+    top: '45%',
     left: 0,
-    right: 0,
-    height: 60,
+    width: 40,
+    height: '10%',
     zIndex: 10,
     backgroundColor: 'transparent',
   },
