@@ -3,6 +3,13 @@ import { Platform, View, StyleSheet, Text, Alert, Share } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import { initiateGoogleLogin } from '../utils/googleAuth';
 
+interface NotificationContextType {
+  pushToken: string | null;
+  permissionStatus: string;
+  lastNotification: any;
+  lastNotificationResponse: any;
+}
+
 interface PlatformWebViewProps {
   source: { uri: string };
   style?: any;
@@ -16,6 +23,7 @@ interface PlatformWebViewProps {
   scalesPageToFit?: boolean;
   bounces?: boolean;
   allowsBackForwardNavigationGestures?: boolean;
+  notificationContext?: NotificationContextType;
   ref?: React.RefObject<any>;
 }
 
@@ -218,6 +226,7 @@ const WebWebView = React.forwardRef<any, PlatformWebViewProps>(
 // Main PlatformWebView component
 const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref) => {
   const webViewRef = useRef<WebView>(null);
+  const { notificationContext } = props;
 
   useEffect(() => {
     if (ref) {
@@ -228,6 +237,28 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
       }
     }
   }, [ref]);
+
+  useEffect(() => {
+    if (notificationContext?.pushToken && webViewRef.current) {
+      console.log('[Native App] Sending push token to WebView:', notificationContext.pushToken);
+      sendMessageToWebView({
+        type: 'pushToken',
+        token: notificationContext.pushToken,
+        permissionStatus: notificationContext.permissionStatus,
+      });
+    }
+  }, [notificationContext?.pushToken]);
+
+  useEffect(() => {
+    if (notificationContext?.lastNotificationResponse && webViewRef.current) {
+      console.log('[Native App] Sending notification tap to WebView');
+      const notificationData = notificationContext.lastNotificationResponse.notification.request.content.data;
+      sendMessageToWebView({
+        type: 'notificationTapped',
+        data: notificationData,
+      });
+    }
+  }, [notificationContext?.lastNotificationResponse]);
 
   const sendMessageToWebView = (message: any) => {
     if (webViewRef.current) {

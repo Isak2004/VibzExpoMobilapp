@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import PlatformWebView from '@/components/PlatformWebView';
+import { useNotificationContext } from '@/contexts/NotificationContext';
 
 const START_PAGE_URL = 'https://loveappneo.vibz.world';
 
@@ -21,8 +22,8 @@ export default function BrowserScreen() {
   const [showUrlModal, setShowUrlModal] = useState(false);
   const [urlInput, setUrlInput] = useState('');
   const { url } = useLocalSearchParams<{ url?: string }>();
+  const notificationContext = useNotificationContext();
   const [currentUrl, setCurrentUrl] = useState(() => {
-    // Initialize with deep link URL if available, otherwise use default
     if (url && typeof url === 'string') {
       console.log('[Browser] Initializing with deep link URL:', url);
       return decodeURIComponent(url);
@@ -30,7 +31,6 @@ export default function BrowserScreen() {
     return START_PAGE_URL;
   });
 
-  // Update URL when deep link changes
   useEffect(() => {
     if (url && typeof url === 'string') {
       const decodedUrl = decodeURIComponent(url);
@@ -108,6 +108,7 @@ export default function BrowserScreen() {
         scalesPageToFit={true}
         bounces={false}
         allowsBackForwardNavigationGestures={true}
+        notificationContext={notificationContext}
       />
 
       <Modal
