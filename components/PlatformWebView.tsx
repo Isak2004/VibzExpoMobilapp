@@ -95,15 +95,6 @@ const WebWebView = React.forwardRef<any, PlatformWebViewProps>(
       setCurrentUrl(source.uri);
       setLoading(true);
       setError(null);
-
-      // Set a timeout to handle cases where the iframe never loads
-      const timeout = setTimeout(() => {
-        if (loading) {
-          handleError();
-        }
-      }, 15000); // 15 second timeout
-
-      return () => clearTimeout(timeout);
     }, [source.uri]);
 
     if (error) {
