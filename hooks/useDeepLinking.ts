@@ -2,6 +2,13 @@ import { useEffect } from 'react';
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
 
+// Define the domains we handle
+const HANDLED_DOMAINS = [
+  'loveappneo.vibz.world',
+  'lovenote.vibz.world',
+  'openinapp.vibz.world'
+];
+
 export function useDeepLinking() {
   const router = useRouter();
 
@@ -10,32 +17,46 @@ export function useDeepLinking() {
     const handleInitialURL = async () => {
       const initialUrl = await Linking.getInitialURL();
       if (initialUrl) {
+        console.log('[Deep Link] Initial URL:', initialUrl);
         handleIncomingURL(initialUrl);
       }
     };
 
     // Handle URLs when app is already running
     const handleIncomingURL = (url: string) => {
-      console.log('Incoming URL:', url);
-      
-      // Parse the URL to extract the target website
+      console.log('[Deep Link] Incoming URL:', url);
+
+      // Parse the URL to extract information
       const parsedUrl = Linking.parse(url);
-      
-      // Check if it's our app scheme with a URL parameter
-      if (parsedUrl.scheme === 'browser-app' && parsedUrl.queryParams?.url) {
+      console.log('[Deep Link] Parsed URL:', parsedUrl);
+
+      // Check if it's our custom app scheme with a URL parameter
+      if (parsedUrl.scheme === 'vibzworld' && parsedUrl.queryParams?.url) {
         const targetUrl = parsedUrl.queryParams.url as string;
-        // Navigate to browser with the target URL
-        router.push(`/?url=${encodeURIComponent(targetUrl)}`);
+        console.log('[Deep Link] Navigating to URL from scheme:', targetUrl);
+        router.replace(`/?url=${encodeURIComponent(targetUrl)}`);
       }
-      // Handle direct HTTP/HTTPS URLs (for Android intent filters)
+      // Handle direct HTTP/HTTPS URLs from our handled domains
       else if (parsedUrl.scheme === 'http' || parsedUrl.scheme === 'https') {
-        // Navigate to browser with the full URL
-        router.push(`/?url=${encodeURIComponent(url)}`);
+        // Check if this URL is from one of our handled domains
+        const isHandledDomain = HANDLED_DOMAINS.some(domain =>
+          parsedUrl.hostname === domain
+        );
+
+        if (isHandledDomain) {
+          console.log('[Deep Link] Navigating to handled domain URL:', url);
+          router.replace(`/?url=${encodeURIComponent(url)}`);
+        } else {
+          console.log('[Deep Link] URL not from handled domain, ignoring:', url);
+        }
       }
       // Handle custom URL schemes that should open websites
       else if (parsedUrl.queryParams?.openUrl) {
         const targetUrl = parsedUrl.queryParams.openUrl as string;
-        router.push(`/?url=${encodeURIComponent(targetUrl)}`);
+        console.log('[Deep Link] Navigating to URL from openUrl param:', targetUrl);
+        router.replace(`/?url=${encodeURIComponent(targetUrl)}`);
+      } else {
+        console.log('[Deep Link] No matching URL pattern, ignoring');
       }
     };
 

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import {
   View,
   StyleSheet,
@@ -10,6 +10,7 @@ import {
   Keyboard,
   Platform,
 } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import PlatformWebView from '@/components/PlatformWebView';
 
 const START_PAGE_URL = 'https://loveappneo.vibz.world';
@@ -19,7 +20,24 @@ export default function BrowserScreen() {
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
   const [showUrlModal, setShowUrlModal] = useState(false);
   const [urlInput, setUrlInput] = useState('');
-  const [currentUrl, setCurrentUrl] = useState(START_PAGE_URL);
+  const { url } = useLocalSearchParams<{ url?: string }>();
+  const [currentUrl, setCurrentUrl] = useState(() => {
+    // Initialize with deep link URL if available, otherwise use default
+    if (url && typeof url === 'string') {
+      console.log('[Browser] Initializing with deep link URL:', url);
+      return decodeURIComponent(url);
+    }
+    return START_PAGE_URL;
+  });
+
+  // Update URL when deep link changes
+  useEffect(() => {
+    if (url && typeof url === 'string') {
+      const decodedUrl = decodeURIComponent(url);
+      console.log('[Browser] Deep link URL changed, updating to:', decodedUrl);
+      setCurrentUrl(decodedUrl);
+    }
+  }, [url]);
 
   const formatUrl = (inputUrl: string): string => {
     if (!inputUrl.trim()) return '';
