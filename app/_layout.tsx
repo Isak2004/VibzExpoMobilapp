@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Platform, AppState } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as SplashScreen from 'expo-splash-screen';
 import * as NavigationBar from 'expo-navigation-bar';
 import * as Notifications from 'expo-notifications';
 import { useFrameworkReady } from '@/hooks/useFrameworkReady';
@@ -9,9 +10,12 @@ import { useDeepLinking } from '@/hooks/useDeepLinking';
 import { useNotifications } from '@/hooks/useNotifications';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 
+SplashScreen.preventAutoHideAsync();
+
 export default function RootLayout() {
   useFrameworkReady();
   useDeepLinking();
+  const [appReady, setAppReady] = useState(false);
 
   const [lastNotification, setLastNotification] = useState<Notifications.Notification | null>(null);
   const [lastNotificationResponse, setLastNotificationResponse] = useState<Notifications.NotificationResponse | null>(null);
@@ -50,6 +54,29 @@ export default function RootLayout() {
       subscription.remove();
     };
   }, []);
+
+  useEffect(() => {
+    async function prepare() {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setAppReady(true);
+      } catch (e) {
+        console.warn(e);
+      }
+    }
+
+    prepare();
+  }, []);
+
+  useEffect(() => {
+    if (appReady) {
+      SplashScreen.hideAsync();
+    }
+  }, [appReady]);
+
+  if (!appReady) {
+    return null;
+  }
 
   return (
     <NotificationProvider

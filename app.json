@@ -8,7 +8,17 @@
     "scheme": "vibzworld",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/images/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
     "ios": {
+      "splash": {
+        "image": "./assets/images/icon.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff"
+      },
       "supportsTablet": true,
       "bundleIdentifier": "com.example.browserapp",
       "associatedDomains": [
@@ -25,6 +35,15 @@
     },
     "android": {
       "package": "world.vibz.browserapp",
+      "splash": {
+        "image": "./assets/images/icon.png",
+        "resizeMode": "contain",
+        "backgroundColor": "#ffffff"
+      },
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/icon.png",
+        "backgroundColor": "#ffffff"
+      },
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "POST_NOTIFICATIONS"
@@ -62,6 +81,7 @@
     "plugins": [
       "expo-router",
       "expo-font",
+      "expo-splash-screen",
       "expo-web-browser",
       [
         "expo-notifications",
