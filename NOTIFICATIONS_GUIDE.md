@@ -2,6 +2,60 @@
 
 This app now supports push notifications using Expo's push notification service. The mobile app handles all notification setup and communicates with your web app via the WebView bridge.
 
+## ⚠️ REQUIRED SETUP: FCM Credentials for Android
+
+Before notifications will work on Android, you **MUST** configure Firebase Cloud Messaging (FCM) credentials. Follow these steps:
+
+### 1. Create Firebase Project
+
+1. Go to [Firebase Console](https://console.firebase.google.com/)
+2. Click "Add project" (or use existing project)
+3. Enter project name and complete setup
+
+### 2. Add Android App to Firebase
+
+1. In Firebase Console, click the Android icon
+2. Enter Android package name: **`world.vibz.browserapp`**
+3. Download **`google-services.json`**
+4. Place `google-services.json` in your project root (next to `app.json`)
+
+### 3. Upload FCM Credentials to EAS
+
+**Option A: Using EAS CLI**
+```bash
+npm install -g eas-cli
+eas login
+eas credentials
+```
+- Select "Android" → "production"
+- Upload your `google-services.json`
+
+**Option B: Using Expo Dashboard**
+1. Go to [expo.dev](https://expo.dev)
+2. Navigate to your project
+3. Go to "Credentials" → "Android"
+4. Upload `google-services.json`
+
+### 4. Configuration Added
+
+The `app.json` has been configured with:
+```json
+{
+  "android": {
+    "googleServicesFile": "./google-services.json"
+  }
+}
+```
+
+### 5. Rebuild Your App
+
+After adding FCM credentials, you **must rebuild** your Android app:
+```bash
+eas build --platform android
+```
+
+---
+
 ## How It Works
 
 1. **Mobile App**: Requests notification permissions and gets an Expo push token

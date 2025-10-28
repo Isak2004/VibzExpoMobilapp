@@ -35,6 +35,7 @@
     },
     "android": {
       "package": "world.vibz.browserapp",
+      "googleServicesFile": "./google-services.json",
       "splash": {
         "image": "./assets/images/splash.png",
         "resizeMode": "cover",
