@@ -25,7 +25,6 @@
     },
     "android": {
       "package": "world.vibz.browserapp",
-      "useNextNotificationsApi": true,
       "permissions": [
         "RECEIVE_BOOT_COMPLETED",
         "POST_NOTIFICATIONS"
