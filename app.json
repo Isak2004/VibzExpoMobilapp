@@ -9,14 +9,14 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/icon.png",
-      "resizeMode": "contain",
+      "image": "./assets/images/splash.png",
+      "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
     "ios": {
       "splash": {
-        "image": "./assets/images/icon.png",
-        "resizeMode": "contain",
+        "image": "./assets/images/splash.png",
+        "resizeMode": "cover",
         "backgroundColor": "#ffffff"
       },
       "supportsTablet": true,
@@ -36,8 +36,8 @@
     "android": {
       "package": "world.vibz.browserapp",
       "splash": {
-        "image": "./assets/images/icon.png",
-        "resizeMode": "contain",
+        "image": "./assets/images/splash.png",
+        "resizeMode": "cover",
         "backgroundColor": "#ffffff"
       },
       "adaptiveIcon": {

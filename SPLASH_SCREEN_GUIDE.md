@@ -1,141 +1,296 @@
 # Splash Screen Configuration
 
-The app now has a properly configured splash screen for Android (and iOS).
+The app is now configured to use a custom splash screen image.
 
-## What Was Added
+## 🎨 Your Custom Splash Screen Image
 
-### 1. Configuration in `app.json`
+### Where to Put Your Image
+
+**Location:**
+```
+/assets/images/splash.png
+```
+
+Place your custom splash screen image at this exact path in your project.
+
+### Image Specifications
+
+**Recommended Sizes:**
+- **Universal (Best)**: **2048 × 2048 pixels** - Works perfectly for all devices
+- **Android Optimized**: 1242 × 2436 px (portrait)
+- **iOS Optimized**: 2048 × 2732 px (portrait)
+
+**Format:**
+- PNG (recommended)
+- JPG also works
+- Transparency supported
+
+**Design Mode:**
+- Current setting: **`cover`** - Image fills entire screen, may crop edges
+- Alternative: **`contain`** - Image fits within screen, may show background color
+
+### Design Guidelines
+
+**Safe Area (Important!):**
+- Keep logos and text in the center **80%** of the image
+- Edges may be cropped on different screen sizes
+- Test on both tall (18:9) and standard (16:9) aspect ratios
+
+**Tips for Best Results:**
+1. Design for the largest size (2048 × 2048 or larger)
+2. Use high resolution to avoid pixelation
+3. Keep important elements centered
+4. Avoid thin borders (they'll be cropped)
+5. Consider both light and dark themes
+
+**Example Layout:**
+```
+┌────────────────────────┐
+│   [may be cropped]     │
+│                        │
+│    ┌──────────┐        │
+│    │   LOGO   │  ← Safe area
+│    └──────────┘        │
+│                        │
+│   [may be cropped]     │
+└────────────────────────┘
+```
+
+---
+
+## Configuration Details
+
+### Current Settings in `app.json`
 
 ```json
 {
   "expo": {
     "splash": {
-      "image": "./assets/images/icon.png",
-      "resizeMode": "contain",
+      "image": "./assets/images/splash.png",
+      "resizeMode": "cover",
       "backgroundColor": "#ffffff"
-    },
-    "android": {
-      "splash": {
-        "image": "./assets/images/icon.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#ffffff"
-      },
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#ffffff"
-      }
-    },
-    "ios": {
-      "splash": {
-        "image": "./assets/images/icon.png",
-        "resizeMode": "contain",
-        "backgroundColor": "#ffffff"
-      }
     }
   }
 }
 ```
 
-### 2. Splash Screen Control in Code
+**What This Means:**
+- **image**: Path to your custom splash screen
+- **resizeMode**: `cover` fills the entire screen
+- **backgroundColor**: White background (shows if image has transparency)
 
-The splash screen is controlled in `app/_layout.tsx`:
+### Splash Screen Behavior
 
-- **Prevents auto-hide** on app start
-- Shows splash screen for 1 second minimum
-- Hides automatically once app is ready
+**Timeline:**
+1. App launches → Splash screen appears instantly
+2. Shows for minimum 1 second while loading
+3. Automatically hides when app is ready
 
-## How It Works
+**Code Control:**
+Located in `app/_layout.tsx`:
+- Prevents auto-hide on launch
+- Waits for app to initialize
+- Smooth transition to main content
 
-1. **App Launch**: Splash screen displays immediately using your app icon
-2. **Background Color**: White background (#ffffff)
-3. **Icon Display**: Icon is centered and contained within the screen
-4. **Duration**: Shows for at least 1 second while app initializes
-5. **Auto Hide**: Disappears once the app layout is ready
+---
 
 ## Customization Options
 
 ### Change Background Color
 
-Edit the `backgroundColor` in `app.json`:
+If your splash image has transparency or doesn't fill the screen:
 
 ```json
 "splash": {
-  "backgroundColor": "#000000"  // Black background
+  "backgroundColor": "#000000"  // Black
+  "backgroundColor": "#1a1a1a"  // Dark gray
+  "backgroundColor": "#yourHexColor"
 }
 ```
 
 ### Change Resize Mode
 
-Options: `contain`, `cover`, `native`
-
+**Option 1: Cover (Current)**
 ```json
-"splash": {
-  "resizeMode": "cover"  // Fill entire screen
-}
+"resizeMode": "cover"
 ```
+- Fills entire screen
+- Maintains aspect ratio
+- May crop edges
+- No borders/gaps
+- **Best for**: Full-screen designs
 
-### Use Different Image
-
-Replace `./assets/images/icon.png` with your custom splash screen image:
-
+**Option 2: Contain**
 ```json
-"splash": {
-  "image": "./assets/images/splash.png"
-}
+"resizeMode": "contain"
 ```
+- Fits entirely within screen
+- Shows background color around image
+- No cropping
+- **Best for**: Logos on solid background
 
-**Recommended Image Sizes:**
-- **Android**: 1242 × 2436 px (portrait) or larger
-- **iOS**: 2048 × 2732 px (portrait) or larger
-- **Format**: PNG with transparency
+**Option 3: Native**
+```json
+"resizeMode": "native"
+```
+- Uses image at exact resolution
+- May not fill screen
+- **Best for**: Pixel-perfect designs
 
 ### Adjust Display Duration
 
-Modify the timeout in `app/_layout.tsx`:
+Edit `app/_layout.tsx` to change how long the splash shows:
 
 ```typescript
 // Current: 1 second
 await new Promise(resolve => setTimeout(resolve, 1000));
 
-// Change to 2 seconds
+// 2 seconds
 await new Promise(resolve => setTimeout(resolve, 2000));
 
-// Or remove delay entirely for instant hide
-await new Promise(resolve => setTimeout(resolve, 0));
+// 500ms (faster)
+await new Promise(resolve => setTimeout(resolve, 500));
+
+// Wait for something to load
+await yourLoadingFunction();
 ```
 
-## Platform-Specific Behavior
+---
+
+## Platform-Specific Details
 
 ### Android
-- Uses adaptive icon system
 - Splash screen follows Material Design guidelines
-- Background color applies to status bar area
+- Shows immediately on app launch
+- Smooth fade transition
+- Supports all screen sizes and orientations
 
 ### iOS
-- Uses launch storyboard
-- Supports all device sizes automatically
-- Background color fills safe area
+- Uses launch storyboard system
+- Instant display on tap
+- Automatic safe area handling
+- Works on all iPhone/iPad models
+
+### Web
+- Uses different loading mechanism
+- No native splash screen
+- Can implement custom loader
+
+---
+
+## Testing Your Splash Screen
+
+### Required Steps
+
+**IMPORTANT:** Splash screen changes require a full rebuild!
+
+1. Add your `splash.png` to `/assets/images/`
+2. Rebuild your app:
+   ```bash
+   # For Android
+   eas build --platform android
+
+   # For iOS
+   eas build --platform ios
+   ```
+3. Install and test the new build
+
+### Verification Checklist
+
+- ✅ Image displays correctly (not stretched/distorted)
+- ✅ Logo/text is centered and visible
+- ✅ No important elements are cropped
+- ✅ Smooth transition to app
+- ✅ Works in portrait and landscape
+- ✅ Background color looks good (if visible)
+
+---
 
 ## Troubleshooting
 
 ### Splash Screen Not Showing
 
-1. Rebuild the app (splash screens require native rebuild)
-2. Verify image path is correct in `app.json`
-3. Check image file exists at specified path
+**Problem:** Old icon still appears
+**Solution:** You need to rebuild the native app. Changes to `app.json` splash settings don't apply to existing builds.
 
-### Splash Screen Flickers
+**Steps:**
+1. Make sure `splash.png` exists at `/assets/images/splash.png`
+2. Run a full rebuild (not just restart dev server)
+3. Install the new APK/IPA
 
-- Increase the delay in `app/_layout.tsx`
-- Ensure fonts and assets are loaded before hiding splash
+### Image Looks Stretched
 
-### Wrong Colors/Image
+**Problem:** Wrong aspect ratio or resize mode
+**Solutions:**
+- Use 2048 × 2048 square image
+- Change `resizeMode` to `contain`
+- Design image for target aspect ratio
 
-- Clear build cache: `expo prebuild --clean`
-- Rebuild the app completely
+### Parts of Image Are Cut Off
 
-## Notes
+**Problem:** Using `cover` mode with important content near edges
+**Solutions:**
+- Keep content in center safe area
+- Use `contain` mode instead
+- Redesign with more padding
 
-- Splash screen configuration requires a **full rebuild** of the native app
-- Changes to splash screen settings in `app.json` won't appear until you rebuild
-- Web platform doesn't use native splash screens (uses loading indicator instead)
+### Colors Look Wrong
+
+**Problem:** Color space or format issue
+**Solutions:**
+- Save as RGB/RGBA PNG
+- Use sRGB color profile
+- Avoid CMYK color mode
+
+### Background Color Shows Through
+
+**Problem:** Image has transparency or doesn't fill screen
+**Solutions:**
+- Change `backgroundColor` to match your design
+- Make image fully opaque
+- Extend image design to edges
+
+---
+
+## Quick Reference
+
+| Setting | Current Value | Change To |
+|---------|---------------|-----------|
+| **Image Path** | `./assets/images/splash.png` | Your custom path |
+| **Resize Mode** | `cover` | `contain` or `native` |
+| **Background** | `#ffffff` (white) | Your color |
+| **Duration** | 1000ms | Any value in ms |
+
+---
+
+## Example: High-Quality Splash Screen
+
+**Recipe for Professional Splash:**
+
+1. **Create Image:**
+   - Size: 2048 × 2048 px
+   - Format: PNG (24-bit with alpha)
+   - Place logo in center 1600 × 1600 area
+
+2. **Export Settings:**
+   - Resolution: 300 DPI minimum
+   - Color: sRGB
+   - Compression: PNG-8 or PNG-24
+
+3. **File Location:**
+   - Save as: `splash.png`
+   - Place in: `/assets/images/`
+
+4. **Test:**
+   - Rebuild app
+   - Check on different screen sizes
+   - Verify on both Android and iOS
+
+---
+
+## Need Help?
+
+- Splash screen changes REQUIRE a native rebuild
+- The image file must exist before building
+- Use high resolution images to avoid blur
+- Keep critical content in the center safe area
