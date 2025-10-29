@@ -238,16 +238,19 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
     }
   }, [ref]);
 
+  const [webViewReady, setWebViewReady] = React.useState(false);
+
   useEffect(() => {
-    if (notificationContext?.pushToken && webViewRef.current) {
+    if (notificationContext?.pushToken && webViewRef.current && webViewReady) {
       console.log('[Native App] Sending push token to WebView:', notificationContext.pushToken);
       sendMessageToWebView({
         type: 'pushToken',
         token: notificationContext.pushToken,
         permissionStatus: notificationContext.permissionStatus,
+        timestamp: new Date().toISOString(),
       });
     }
-  }, [notificationContext?.pushToken]);
+  }, [notificationContext?.pushToken, webViewReady]);
 
   useEffect(() => {
     if (notificationContext?.lastNotificationResponse && webViewRef.current) {
@@ -262,13 +265,36 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
   const sendMessageToWebView = (message: any) => {
     if (webViewRef.current) {
-      console.log('[Native App] Sending message to WebView:', message);
+      console.log('[Native App] Sending message to WebView via both methods:', message);
+
+      // Method 1: Use postMessage (preferred)
+      try {
+        webViewRef.current.postMessage(JSON.stringify(message));
+        console.log('[Native App] Message sent via postMessage');
+      } catch (error) {
+        console.error('[Native App] Error sending via postMessage:', error);
+      }
+
+      // Method 2: Inject JavaScript as fallback
       const script = `
         (function() {
-          console.log('[WebView] Received message from native:', ${JSON.stringify(JSON.stringify(message))});
-          window.dispatchEvent(new MessageEvent('message', {
-            data: ${JSON.stringify(message)}
-          }));
+          try {
+            console.log('[WebView] Received message from native:', ${JSON.stringify(JSON.stringify(message))});
+
+            // Dispatch as MessageEvent
+            window.dispatchEvent(new MessageEvent('message', {
+              data: ${JSON.stringify(message)}
+            }));
+
+            // Also dispatch as CustomEvent for better compatibility
+            window.dispatchEvent(new CustomEvent('reactNativeMessage', {
+              detail: ${JSON.stringify(message)}
+            }));
+
+            console.log('[WebView] Message dispatched successfully');
+          } catch (error) {
+            console.error('[WebView] Error dispatching message:', error);
+          }
         })();
         true;
       `;
@@ -320,11 +346,48 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
   const handleWebViewMessage = async (event: WebViewMessageEvent) => {
     try {
-      console.log('[Native App] Received message:', event.nativeEvent.data);
+      console.log('[Native App] Received message from WebView:', event.nativeEvent.data);
       const data = JSON.parse(event.nativeEvent.data);
-      console.log('[Native App] Parsed message:', data);
+      console.log('[Native App] Parsed message type:', data.type);
 
-      if (data.type === 'GOOGLE_LOGIN_REQUEST') {
+      if (data.type === 'webViewReady') {
+        console.log('[Native App] WebView is ready, marking as ready and sending push token');
+        setWebViewReady(true);
+
+        // Send push token immediately if available
+        if (notificationContext?.pushToken) {
+          console.log('[Native App] Push token available, sending now');
+          sendMessageToWebView({
+            type: 'pushToken',
+            token: notificationContext.pushToken,
+            permissionStatus: notificationContext.permissionStatus,
+            timestamp: new Date().toISOString(),
+          });
+        } else {
+          console.log('[Native App] No push token available yet');
+        }
+      } else if (data.type === 'requestPushToken') {
+        console.log('[Native App] Web app requesting push token');
+
+        if (notificationContext?.pushToken) {
+          console.log('[Native App] Sending push token:', notificationContext.pushToken);
+          sendMessageToWebView({
+            type: 'pushToken',
+            token: notificationContext.pushToken,
+            permissionStatus: notificationContext.permissionStatus,
+            timestamp: new Date().toISOString(),
+          });
+        } else {
+          console.log('[Native App] No push token available to send');
+          sendMessageToWebView({
+            type: 'pushToken',
+            token: null,
+            permissionStatus: 'unavailable',
+            timestamp: new Date().toISOString(),
+          });
+        }
+      } else if (data.type === 'GOOGLE_LOGIN_REQUEST') {
+        console.log('[Native App] Processing Google login request');
         const result = await initiateGoogleLogin();
 
         if (result.success && webViewRef.current) {
@@ -354,7 +417,7 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
     } catch (error) {
       console.error('[Native App] Error handling WebView message:', error);
       sendMessageToWebView({
-        type: 'shareResult',
+        type: 'error',
         success: false,
         error: 'Failed to parse message: ' + (error instanceof Error ? error.message : 'Unknown error')
       });
@@ -400,6 +463,20 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
       console.log('[WebView] VibzWorld WebView Bridge Initialized');
       console.log('[WebView] window.isReactNativeWebView:', window.isReactNativeWebView);
       console.log('[WebView] window.shareContent:', typeof window.shareContent);
+
+      // Notify native app that WebView is ready
+      setTimeout(function() {
+        console.log('[WebView] Sending webViewReady message to native app');
+        try {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'webViewReady',
+            timestamp: new Date().toISOString()
+          }));
+          console.log('[WebView] webViewReady message sent');
+        } catch (error) {
+          console.error('[WebView] Error sending webViewReady:', error);
+        }
+      }, 500);
     })();
     true;
   `;
