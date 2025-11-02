@@ -21,15 +21,10 @@ export default function RootLayout() {
   const [lastNotificationResponse, setLastNotificationResponse] = useState<Notifications.NotificationResponse | null>(null);
 
   const { pushToken, permissionStatus } = useNotifications({
-    onTokenReceived: (token) => {
-      console.log('[App] Push token received:', token);
-    },
     onNotificationReceived: (notification) => {
-      console.log('[App] Notification received:', notification);
       setLastNotification(notification);
     },
     onNotificationTapped: (response) => {
-      console.log('[App] Notification tapped:', response);
       setLastNotificationResponse(response);
     },
   });

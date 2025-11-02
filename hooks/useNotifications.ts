@@ -37,7 +37,6 @@ export function useNotifications({
   useEffect(() => {
     registerForPushNotificationsAsync().then((token) => {
       if (token) {
-        console.log('[Notifications] Push token received:', token);
         setPushToken(token);
         onTokenReceived?.(token);
       }
@@ -45,13 +44,11 @@ export function useNotifications({
 
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
-        console.log('[Notifications] Notification received:', notification);
         onNotificationReceived?.(notification);
       });
 
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log('[Notifications] Notification tapped:', response);
         onNotificationTapped?.(response);
       });
 
@@ -67,13 +64,11 @@ export function useNotifications({
 
   async function registerForPushNotificationsAsync(): Promise<string | null> {
     if (Platform.OS === 'web') {
-      console.log('[Notifications] Web platform, push notifications not available');
       setPermissionStatus('unavailable');
       return null;
     }
 
     if (!Device.isDevice) {
-      console.log('[Notifications] Not a physical device, push notifications not available');
       setPermissionStatus('unavailable');
       return null;
     }
@@ -88,7 +83,6 @@ export function useNotifications({
       }
 
       if (finalStatus !== 'granted') {
-        console.log('[Notifications] Permission denied');
         setPermissionStatus('denied');
         return null;
       }
@@ -104,8 +98,6 @@ export function useNotifications({
       const tokenData = await Notifications.getExpoPushTokenAsync({
         projectId,
       });
-
-      console.log('[Notifications] Push token generated:', tokenData.data);
 
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('default', {

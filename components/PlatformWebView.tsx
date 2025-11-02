@@ -242,7 +242,6 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
   useEffect(() => {
     if (notificationContext?.pushToken && webViewRef.current && webViewReady) {
-      console.log('[Native App] Sending push token to WebView:', notificationContext.pushToken);
       sendMessageToWebView({
         type: 'pushToken',
         token: notificationContext.pushToken,
@@ -254,7 +253,6 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
   useEffect(() => {
     if (notificationContext?.lastNotificationResponse && webViewRef.current) {
-      console.log('[Native App] Sending notification tap to WebView');
       const notificationData = notificationContext.lastNotificationResponse.notification.request.content.data;
       sendMessageToWebView({
         type: 'notificationTapped',
@@ -265,12 +263,9 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
   const sendMessageToWebView = (message: any) => {
     if (webViewRef.current) {
-      console.log('[Native App] Sending message to WebView via both methods:', message);
-
       // Method 1: Use postMessage (preferred)
       try {
         webViewRef.current.postMessage(JSON.stringify(message));
-        console.log('[Native App] Message sent via postMessage');
       } catch (error) {
         console.error('[Native App] Error sending via postMessage:', error);
       }
@@ -279,8 +274,6 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
       const script = `
         (function() {
           try {
-            console.log('[WebView] Received message from native:', ${JSON.stringify(JSON.stringify(message))});
-
             // Dispatch as MessageEvent
             window.dispatchEvent(new MessageEvent('message', {
               data: ${JSON.stringify(message)}
@@ -290,8 +283,6 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
             window.dispatchEvent(new CustomEvent('reactNativeMessage', {
               detail: ${JSON.stringify(message)}
             }));
-
-            console.log('[WebView] Message dispatched successfully');
           } catch (error) {
             console.error('[WebView] Error dispatching message:', error);
           }
@@ -304,11 +295,9 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
   const handleShare = async (shareData: any) => {
     try {
-      console.log('[Native App] handleShare called with:', shareData);
       const { url, title, text } = shareData;
 
       if (!url) {
-        console.error('[Native App] Share error: URL is required');
         sendMessageToWebView({
           type: 'shareResult',
           success: false,
@@ -323,9 +312,7 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
         url: url,
       };
 
-      console.log('[Native App] Calling Share.share with:', shareOptions);
       const result = await Share.share(shareOptions);
-      console.log('[Native App] Share result:', result);
 
       sendMessageToWebView({
         type: 'shareResult',
@@ -346,31 +333,22 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
   const handleWebViewMessage = async (event: WebViewMessageEvent) => {
     try {
-      console.log('[Native App] Received message from WebView:', event.nativeEvent.data);
       const data = JSON.parse(event.nativeEvent.data);
-      console.log('[Native App] Parsed message type:', data.type);
 
       if (data.type === 'webViewReady') {
-        console.log('[Native App] WebView is ready, marking as ready and sending push token');
         setWebViewReady(true);
 
         // Send push token immediately if available
         if (notificationContext?.pushToken) {
-          console.log('[Native App] Push token available, sending now');
           sendMessageToWebView({
             type: 'pushToken',
             token: notificationContext.pushToken,
             permissionStatus: notificationContext.permissionStatus,
             timestamp: new Date().toISOString(),
           });
-        } else {
-          console.log('[Native App] No push token available yet');
         }
       } else if (data.type === 'requestPushToken') {
-        console.log('[Native App] Web app requesting push token');
-
         if (notificationContext?.pushToken) {
-          console.log('[Native App] Sending push token:', notificationContext.pushToken);
           sendMessageToWebView({
             type: 'pushToken',
             token: notificationContext.pushToken,
@@ -378,7 +356,6 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
             timestamp: new Date().toISOString(),
           });
         } else {
-          console.log('[Native App] No push token available to send');
           sendMessageToWebView({
             type: 'pushToken',
             token: null,
@@ -387,7 +364,6 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
           });
         }
       } else if (data.type === 'GOOGLE_LOGIN_REQUEST') {
-        console.log('[Native App] Processing Google login request');
         const result = await initiateGoogleLogin();
 
         if (result.success && webViewRef.current) {
@@ -409,10 +385,7 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
           `);
         }
       } else if (data.type === 'share') {
-        console.log('[Native App] Processing share request');
         await handleShare(data);
-      } else {
-        console.log('[Native App] Unknown message type:', data.type);
       }
     } catch (error) {
       console.error('[Native App] Error handling WebView message:', error);
@@ -426,7 +399,6 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
   const injectedJavaScript = `
     (function() {
-      console.log('[WebView] Initializing bridge...');
       window.isReactNativeWebView = true;
 
       // Store the native postMessage function
@@ -438,14 +410,12 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
       };
 
       window.requestGoogleLogin = function() {
-        console.log('[WebView] requestGoogleLogin called');
         window.ReactNativeWebView.postMessage(JSON.stringify({
           type: 'GOOGLE_LOGIN_REQUEST'
         }));
       };
 
       window.shareContent = function(shareData) {
-        console.log('[WebView] shareContent called with:', shareData);
         try {
           const message = JSON.stringify({
             type: 'share',
@@ -453,26 +423,19 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
             title: shareData.title,
             text: shareData.text
           });
-          console.log('[WebView] Sending message:', message);
           window.ReactNativeWebView.postMessage(message);
         } catch (error) {
           console.error('[WebView] Error in shareContent:', error);
         }
       };
 
-      console.log('[WebView] VibzWorld WebView Bridge Initialized');
-      console.log('[WebView] window.isReactNativeWebView:', window.isReactNativeWebView);
-      console.log('[WebView] window.shareContent:', typeof window.shareContent);
-
       // Notify native app that WebView is ready
       setTimeout(function() {
-        console.log('[WebView] Sending webViewReady message to native app');
         try {
           window.ReactNativeWebView.postMessage(JSON.stringify({
             type: 'webViewReady',
             timestamp: new Date().toISOString()
           }));
-          console.log('[WebView] webViewReady message sent');
         } catch (error) {
           console.error('[WebView] Error sending webViewReady:', error);
         }
