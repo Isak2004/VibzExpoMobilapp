@@ -6,9 +6,9 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
+google-services.json
 /ios
 /android
-google-services.json
 
 # native
 *.orig.*
