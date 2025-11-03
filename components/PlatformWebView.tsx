@@ -241,15 +241,16 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
   const [webViewReady, setWebViewReady] = React.useState(false);
 
   useEffect(() => {
-    if (notificationContext?.pushToken && webViewRef.current && webViewReady) {
+    if (webViewRef.current && webViewReady) {
+      // Send token updates (including when token becomes null due to permission revocation)
       sendMessageToWebView({
         type: 'pushToken',
-        token: notificationContext.pushToken,
-        permissionStatus: notificationContext.permissionStatus,
+        token: notificationContext?.pushToken || null,
+        permissionStatus: notificationContext?.permissionStatus || 'unknown',
         timestamp: new Date().toISOString(),
       });
     }
-  }, [notificationContext?.pushToken, webViewReady]);
+  }, [notificationContext?.pushToken, notificationContext?.permissionStatus, webViewReady]);
 
   useEffect(() => {
     if (notificationContext?.lastNotificationResponse && webViewRef.current) {
