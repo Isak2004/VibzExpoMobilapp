@@ -339,31 +339,20 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
       if (data.type === 'webViewReady') {
         setWebViewReady(true);
 
-        // Send push token immediately if available
-        if (notificationContext?.pushToken) {
-          sendMessageToWebView({
-            type: 'pushToken',
-            token: notificationContext.pushToken,
-            permissionStatus: notificationContext.permissionStatus,
-            timestamp: new Date().toISOString(),
-          });
-        }
+        // Send push token immediately (including null with status)
+        sendMessageToWebView({
+          type: 'pushToken',
+          token: notificationContext?.pushToken || null,
+          permissionStatus: notificationContext?.permissionStatus || 'unknown',
+          timestamp: new Date().toISOString(),
+        });
       } else if (data.type === 'requestPushToken') {
-        if (notificationContext?.pushToken) {
-          sendMessageToWebView({
-            type: 'pushToken',
-            token: notificationContext.pushToken,
-            permissionStatus: notificationContext.permissionStatus,
-            timestamp: new Date().toISOString(),
-          });
-        } else {
-          sendMessageToWebView({
-            type: 'pushToken',
-            token: null,
-            permissionStatus: 'unavailable',
-            timestamp: new Date().toISOString(),
-          });
-        }
+        sendMessageToWebView({
+          type: 'pushToken',
+          token: notificationContext?.pushToken || null,
+          permissionStatus: notificationContext?.permissionStatus || 'unknown',
+          timestamp: new Date().toISOString(),
+        });
       } else if (data.type === 'GOOGLE_LOGIN_REQUEST') {
         const result = await initiateGoogleLogin();
 
