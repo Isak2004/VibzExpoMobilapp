@@ -103,41 +103,24 @@ All console logs use emoji prefixes to make them easy to spot:
 
 ---
 
-### SCENARIO 3a: Web App Signals Ready (Automatic)
+### SCENARIO 3: Web App Requests Token (After Login)
 
-**When it happens:** Web app loads and automatically signals it's ready (after 500ms)
+**When it happens:** Web app calls `window.ReactNativeWebView.postMessage({ type: 'requestPushToken' })` after user logs in
 
 **Expected logs:**
 ```
-[PlatformWebView] ✅ SCENARIO 3a: Web app signaled ready
-[PlatformWebView] 📤 Sending initial token to web app: { token: 'ExpoToken[...]', permissionStatus: 'granted' }
+[PlatformWebView] 📥 Web app requested token (likely after login)
+[PlatformWebView] 📤 Sending current token: { token: 'ExpoToken[...]', permissionStatus: 'granted' }
 [PlatformWebView] ✅ Message sent via postMessage
 ```
 
 **How to test:**
 1. Launch the app
-2. Wait for web app to load
-3. Check console logs for "SCENARIO 3a"
+2. Log into your web app
+3. Web app should automatically request token
+4. Check console logs
 
----
-
-### SCENARIO 3b: Web App Explicitly Requests Token
-
-**When it happens:** Web app calls `window.ReactNativeWebView.postMessage({ type: 'requestPushToken' })`
-
-**Expected logs:**
-```
-[PlatformWebView] 📥 SCENARIO 3b: Web app explicitly requested token
-[PlatformWebView] 📤 Sending current token to web app: { token: 'ExpoToken[...]', permissionStatus: 'granted' }
-[PlatformWebView] ✅ Message sent via postMessage
-```
-
-**How to test:**
-1. In your web app's browser console, run:
-   ```javascript
-   window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'requestPushToken' }))
-   ```
-2. Check native app console logs
+**Note:** Token is NOT sent when WebView first loads (when user is not logged in). Token is only sent when explicitly requested by the web app after login.
 
 ---
 
@@ -184,8 +167,7 @@ window.addEventListener('message', (event) => {
 - [ ] **Scenario 1b:** Fresh install → Deny notifications → Check logs
 - [ ] **Scenario 2a:** Disabled → Enable in Settings → Return to app → Check logs
 - [ ] **Scenario 2b:** Enabled → Disable in Settings → Return to app → Check logs
-- [ ] **Scenario 3a:** App loads → Web app ready → Check logs
-- [ ] **Scenario 3b:** Web app requests token → Check logs
+- [ ] **Scenario 3:** App loads → Login to web app → Token requested → Check logs
 
 ---
 
@@ -214,5 +196,4 @@ window.addEventListener('message', (event) => {
 |----------|------|----------|
 | 1 | App first launch | `SCENARIO 1: User GRANTED/DENIED` |
 | 2 | Settings changed | `SCENARIO 2: User RE-ENABLED/DISABLED` |
-| 3a | Web app ready | `SCENARIO 3a: Web app signaled ready` |
-| 3b | Explicit request | `SCENARIO 3b: Web app explicitly requested` |
+| 3 | After web app login | `Web app requested token` |

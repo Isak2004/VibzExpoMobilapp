@@ -342,23 +342,12 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
       const data = JSON.parse(event.nativeEvent.data);
 
       if (data.type === 'webViewReady') {
-        console.log('[PlatformWebView] ✅ SCENARIO 3a: Web app signaled ready');
+        console.log('[PlatformWebView] ✅ Web app signaled ready (bridge established)');
         setWebViewReady(true);
-
-        console.log('[PlatformWebView] 📤 Sending initial token to web app:', {
-          token: notificationContext?.pushToken || null,
-          permissionStatus: notificationContext?.permissionStatus || 'unknown',
-        });
-        // Send push token immediately (including null with status)
-        sendMessageToWebView({
-          type: 'pushToken',
-          token: notificationContext?.pushToken || null,
-          permissionStatus: notificationContext?.permissionStatus || 'unknown',
-          timestamp: new Date().toISOString(),
-        });
+        // No token sent here - web app will request it after user logs in
       } else if (data.type === 'requestPushToken') {
-        console.log('[PlatformWebView] 📥 SCENARIO 3b: Web app explicitly requested token');
-        console.log('[PlatformWebView] 📤 Sending current token to web app:', {
+        console.log('[PlatformWebView] 📥 Web app requested token (likely after login)');
+        console.log('[PlatformWebView] 📤 Sending current token:', {
           token: notificationContext?.pushToken || null,
           permissionStatus: notificationContext?.permissionStatus || 'unknown',
         });
