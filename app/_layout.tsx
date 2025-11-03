@@ -22,12 +22,21 @@ export default function RootLayout() {
 
   const { pushToken, permissionStatus } = useNotifications({
     onNotificationReceived: (notification) => {
+      console.log('[RootLayout] 🔔 Notification received:', notification);
       setLastNotification(notification);
     },
     onNotificationTapped: (response) => {
+      console.log('[RootLayout] 👆 Notification tapped:', response);
       setLastNotificationResponse(response);
     },
   });
+
+  useEffect(() => {
+    console.log('[RootLayout] 🔄 Context state updated:', {
+      pushToken,
+      permissionStatus,
+    });
+  }, [pushToken, permissionStatus]);
 
   useEffect(() => {
     const hideSystemUI = () => {

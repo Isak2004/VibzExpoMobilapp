@@ -242,6 +242,10 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
   useEffect(() => {
     if (webViewRef.current && webViewReady) {
+      console.log('[PlatformWebView] 📤 Sending token update to web app:', {
+        token: notificationContext?.pushToken || null,
+        permissionStatus: notificationContext?.permissionStatus || 'unknown',
+      });
       // Send token updates (including when token becomes null due to permission revocation)
       sendMessageToWebView({
         type: 'pushToken',
@@ -267,8 +271,9 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
       // Method 1: Use postMessage (preferred)
       try {
         webViewRef.current.postMessage(JSON.stringify(message));
+        console.log('[PlatformWebView] ✅ Message sent via postMessage');
       } catch (error) {
-        console.error('[Native App] Error sending via postMessage:', error);
+        console.error('[PlatformWebView] ❌ Error sending via postMessage:', error);
       }
 
       // Method 2: Inject JavaScript as fallback
@@ -337,8 +342,13 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
       const data = JSON.parse(event.nativeEvent.data);
 
       if (data.type === 'webViewReady') {
+        console.log('[PlatformWebView] ✅ SCENARIO 3a: Web app signaled ready');
         setWebViewReady(true);
 
+        console.log('[PlatformWebView] 📤 Sending initial token to web app:', {
+          token: notificationContext?.pushToken || null,
+          permissionStatus: notificationContext?.permissionStatus || 'unknown',
+        });
         // Send push token immediately (including null with status)
         sendMessageToWebView({
           type: 'pushToken',
@@ -347,6 +357,11 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
           timestamp: new Date().toISOString(),
         });
       } else if (data.type === 'requestPushToken') {
+        console.log('[PlatformWebView] 📥 SCENARIO 3b: Web app explicitly requested token');
+        console.log('[PlatformWebView] 📤 Sending current token to web app:', {
+          token: notificationContext?.pushToken || null,
+          permissionStatus: notificationContext?.permissionStatus || 'unknown',
+        });
         sendMessageToWebView({
           type: 'pushToken',
           token: notificationContext?.pushToken || null,

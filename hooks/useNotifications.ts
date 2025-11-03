@@ -37,17 +37,22 @@ export function useNotifications({
   const appStateListener = useRef<any>();
 
   useEffect(() => {
+    console.log('[useNotifications] 🚀 Hook initialized - registering for push notifications');
     // Initial token registration
     registerForPushNotificationsAsync().then((token) => {
       if (token) {
+        console.log('[useNotifications] ✅ Initial token received:', token);
         setPushToken(token);
         onTokenReceived?.(token);
+      } else {
+        console.log('[useNotifications] ⚠️ No token received during initial registration');
       }
     });
 
     // Listen for token updates (when Expo/FCM refreshes the token)
     tokenListener.current = Notifications.addPushTokenListener((event) => {
       const newToken = event.data;
+      console.log('[useNotifications] 🔄 Push token updated:', newToken);
       setPushToken(newToken);
       onTokenReceived?.(newToken);
     });
@@ -66,6 +71,7 @@ export function useNotifications({
     // Listen for app state changes to re-check permissions
     const handleAppStateChange = async (nextAppState: AppStateStatus) => {
       if (nextAppState === 'active') {
+        console.log('[useNotifications] 📱 App came to foreground - rechecking permissions');
         // App came to foreground - check if permissions changed
         await recheckPermissions();
       }
@@ -91,29 +97,36 @@ export function useNotifications({
 
   async function registerForPushNotificationsAsync(): Promise<string | null> {
     if (Platform.OS === 'web') {
+      console.log('[useNotifications] ⚠️ Web platform - notifications unavailable');
       setPermissionStatus('unavailable');
       return null;
     }
 
     if (!Device.isDevice) {
+      console.log('[useNotifications] ⚠️ Simulator/Emulator - notifications unavailable');
       setPermissionStatus('unavailable');
       return null;
     }
 
     try {
       const { status: existingStatus } = await Notifications.getPermissionsAsync();
+      console.log('[useNotifications] 📋 Current permission status:', existingStatus);
       let finalStatus = existingStatus;
 
       if (existingStatus !== 'granted') {
+        console.log('[useNotifications] 🔔 Requesting notification permissions from user...');
         const { status } = await Notifications.requestPermissionsAsync();
         finalStatus = status;
+        console.log('[useNotifications] 📝 User response:', finalStatus);
       }
 
       if (finalStatus !== 'granted') {
+        console.log('[useNotifications] ❌ SCENARIO 1: User DENIED permission - setting status to "denied"');
         setPermissionStatus('denied');
         return null;
       }
 
+      console.log('[useNotifications] ✅ SCENARIO 1: User GRANTED permission - getting token');
       setPermissionStatus('granted');
 
       const projectId = Constants.expoConfig?.extra?.eas?.projectId;
@@ -125,6 +138,7 @@ export function useNotifications({
       const tokenData = await Notifications.getExpoPushTokenAsync({
         projectId,
       });
+      console.log('[useNotifications] 🎫 Token generated:', tokenData.data);
 
       if (Platform.OS === 'android') {
         await Notifications.setNotificationChannelAsync('default', {
@@ -151,16 +165,20 @@ export function useNotifications({
     try {
       const { status } = await Notifications.getPermissionsAsync();
       const previousStatus = permissionStatus;
+      console.log('[useNotifications] 🔍 Recheck - Previous:', previousStatus, '→ Current:', status);
 
       if (status !== previousStatus) {
+        console.log('[useNotifications] 🔄 Permission status CHANGED!');
         setPermissionStatus(status);
 
         // If permissions were granted, get a new token
         if (status === 'granted' && previousStatus !== 'granted') {
+          console.log('[useNotifications] ✅ SCENARIO 2: User RE-ENABLED notifications in settings - getting token');
           const projectId = Constants.expoConfig?.extra?.eas?.projectId;
           if (projectId) {
             const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
             const newToken = tokenData.data;
+            console.log('[useNotifications] 🎫 New token generated:', newToken);
             setPushToken(newToken);
             onTokenReceived?.(newToken);
           }
@@ -168,12 +186,15 @@ export function useNotifications({
 
         // If permissions were revoked, clear the token
         if (status === 'denied' && previousStatus === 'granted') {
+          console.log('[useNotifications] ❌ SCENARIO 2: User DISABLED notifications in settings - clearing token');
           setPushToken(null);
           onTokenReceived?.(null as any);
         }
+      } else {
+        console.log('[useNotifications] ✓ No permission changes detected');
       }
     } catch (error) {
-      console.error('[Notifications] Error rechecking permissions:', error);
+      console.error('[useNotifications] ❌ Error rechecking permissions:', error);
     }
   }
 
