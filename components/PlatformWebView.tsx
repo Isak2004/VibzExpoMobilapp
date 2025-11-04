@@ -45,10 +45,10 @@ const WebWebView = React.forwardRef<any, PlatformWebViewProps>(
         }
       },
       goBack: () => {
-        console.log('Go back functionality limited in web iframe');
+        if (__DEV__) console.log('Go back functionality limited in web iframe');
       },
       goForward: () => {
-        console.log('Go forward functionality limited in web iframe');
+        if (__DEV__) console.log('Go forward functionality limited in web iframe');
       },
     }));
 
@@ -64,7 +64,7 @@ const WebWebView = React.forwardRef<any, PlatformWebViewProps>(
           await (containerRef.current as any).msRequestFullscreen();
         }
       } catch (err) {
-        console.log('Fullscreen request failed:', err);
+        if (__DEV__) console.log('Fullscreen request failed:', err);
       }
     };
 
@@ -242,7 +242,7 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
   useEffect(() => {
     if (webViewRef.current && webViewReady) {
-      console.log('[PlatformWebView] 📤 Sending token update to web app:', {
+      if (__DEV__) console.log('[PlatformWebView] 📤 Sending token update to web app:', {
         token: notificationContext?.pushToken || null,
         permissionStatus: notificationContext?.permissionStatus || 'unknown',
       });
@@ -271,7 +271,7 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
       // Method 1: Use postMessage (preferred)
       try {
         webViewRef.current.postMessage(JSON.stringify(message));
-        console.log('[PlatformWebView] ✅ Message sent via postMessage');
+        if (__DEV__) console.log('[PlatformWebView] ✅ Message sent via postMessage');
       } catch (error) {
         console.error('[PlatformWebView] ❌ Error sending via postMessage:', error);
       }
@@ -290,7 +290,7 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
               detail: ${JSON.stringify(message)}
             }));
           } catch (error) {
-            console.error('[WebView] Error dispatching message:', error);
+            if (__DEV__) console.error('[WebView] Error dispatching message:', error);
           }
         })();
         true;
@@ -342,12 +342,12 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
       const data = JSON.parse(event.nativeEvent.data);
 
       if (data.type === 'webViewReady') {
-        console.log('[PlatformWebView] ✅ Web app signaled ready (bridge established)');
+        if (__DEV__) console.log('[PlatformWebView] ✅ Web app signaled ready (bridge established)');
         setWebViewReady(true);
         // No token sent here - web app will request it after user logs in
       } else if (data.type === 'requestPushToken') {
-        console.log('[PlatformWebView] 📥 Web app requested token (likely after login)');
-        console.log('[PlatformWebView] 📤 Sending current token:', {
+        if (__DEV__) console.log('[PlatformWebView] 📥 Web app requested token (likely after login)');
+        if (__DEV__) console.log('[PlatformWebView] 📤 Sending current token:', {
           token: notificationContext?.pushToken || null,
           permissionStatus: notificationContext?.permissionStatus || 'unknown',
         });
@@ -419,7 +419,7 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
           });
           window.ReactNativeWebView.postMessage(message);
         } catch (error) {
-          console.error('[WebView] Error in shareContent:', error);
+          if (__DEV__) console.error('[WebView] Error in shareContent:', error);
         }
       };
 
@@ -431,7 +431,7 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
             timestamp: new Date().toISOString()
           }));
         } catch (error) {
-          console.error('[WebView] Error sending webViewReady:', error);
+          if (__DEV__) console.error('[WebView] Error sending webViewReady:', error);
         }
       }, 500);
     })();

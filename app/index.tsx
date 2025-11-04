@@ -25,7 +25,7 @@ export default function BrowserScreen() {
   const notificationContext = useNotificationContext();
   const [currentUrl, setCurrentUrl] = useState(() => {
     if (url && typeof url === 'string') {
-      console.log('[Browser] Initializing with deep link URL:', url);
+      if (__DEV__) console.log('[Browser] Initializing with deep link URL:', url);
       return decodeURIComponent(url);
     }
     return START_PAGE_URL;
@@ -34,7 +34,7 @@ export default function BrowserScreen() {
   useEffect(() => {
     if (url && typeof url === 'string') {
       const decodedUrl = decodeURIComponent(url);
-      console.log('[Browser] Deep link URL changed, updating to:', decodedUrl);
+      if (__DEV__) console.log('[Browser] Deep link URL changed, updating to:', decodedUrl);
       setCurrentUrl(decodedUrl);
     }
   }, [url]);

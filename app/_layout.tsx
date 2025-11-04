@@ -21,12 +21,12 @@ export default function RootLayout() {
   const [lastNotificationResponse, setLastNotificationResponse] = useState<Notifications.NotificationResponse | null>(null);
 
   const handleNotificationReceived = useCallback((notification: Notifications.Notification) => {
-    console.log('[RootLayout] 🔔 Notification received:', notification);
+    if (__DEV__) console.log('[RootLayout] 🔔 Notification received:', notification);
     setLastNotification(notification);
   }, []);
 
   const handleNotificationTapped = useCallback((response: Notifications.NotificationResponse) => {
-    console.log('[RootLayout] 👆 Notification tapped:', response);
+    if (__DEV__) console.log('[RootLayout] 👆 Notification tapped:', response);
     setLastNotificationResponse(response);
   }, []);
 
@@ -36,7 +36,7 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    console.log('[RootLayout] 🔄 Context state updated:', {
+    if (__DEV__) console.log('[RootLayout] 🔄 Context state updated:', {
       pushToken,
       permissionStatus,
     });
@@ -69,7 +69,7 @@ export default function RootLayout() {
         await new Promise(resolve => setTimeout(resolve, 1000));
         setAppReady(true);
       } catch (e) {
-        console.warn(e);
+        if (__DEV__) console.warn(e);
       }
     }
 

@@ -11,7 +11,7 @@ export const openWithBrowser = async (url: string): Promise<void> => {
   if (canOpen) {
     await Linking.openURL(deepLink);
   } else {
-    console.warn('Cannot open deep link:', deepLink);
+    if (__DEV__) console.warn('Cannot open deep link:', deepLink);
   }
 };
 

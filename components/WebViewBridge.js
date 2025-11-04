@@ -26,7 +26,7 @@ const WebViewBridge = ({
       };
       
       // Debug logging
-      console.log('React Native WebView bridge initialized');
+      if (__DEV__) console.log('React Native WebView bridge initialized');
       
       // Prevent default behavior that might interfere
       true;
@@ -37,13 +37,13 @@ const WebViewBridge = ({
   const handleMessage = async (event) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
-      console.log('Received message from WebView:', data);
+      if (__DEV__) console.log('Received message from WebView:', data);
 
       if (data.type === 'share') {
         await handleShare(data);
       }
     } catch (error) {
-      console.error('Error parsing WebView message:', error);
+      if (__DEV__) console.error('Error parsing WebView message:', error);
       sendMessageToWebView({
         type: 'shareResult',
         success: false,
@@ -64,7 +64,7 @@ const WebViewBridge = ({
         url: url, // iOS specific
       };
 
-      console.log('Sharing with options:', shareOptions);
+      if (__DEV__) console.log('Sharing with options:', shareOptions);
 
       const result = await Share.share(shareOptions);
       
@@ -76,11 +76,11 @@ const WebViewBridge = ({
         activityType: result.activityType || null
       };
 
-      console.log('Share result:', response);
+      if (__DEV__) console.log('Share result:', response);
       sendMessageToWebView(response);
 
     } catch (error) {
-      console.error('Share error:', error);
+      if (__DEV__) console.error('Share error:', error);
       
       // Send error back to WebView
       sendMessageToWebView({
@@ -117,7 +117,7 @@ const WebViewBridge = ({
 
   const handleError = (syntheticEvent) => {
     const { nativeEvent } = syntheticEvent;
-    console.error('WebView error:', nativeEvent);
+    if (__DEV__) console.error('WebView error:', nativeEvent);
     setLoading(false);
     onError?.(nativeEvent);
     
