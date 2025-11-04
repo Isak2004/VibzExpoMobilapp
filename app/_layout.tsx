@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Platform, AppState } from 'react-native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -20,15 +20,19 @@ export default function RootLayout() {
   const [lastNotification, setLastNotification] = useState<Notifications.Notification | null>(null);
   const [lastNotificationResponse, setLastNotificationResponse] = useState<Notifications.NotificationResponse | null>(null);
 
+  const handleNotificationReceived = useCallback((notification: Notifications.Notification) => {
+    console.log('[RootLayout] 🔔 Notification received:', notification);
+    setLastNotification(notification);
+  }, []);
+
+  const handleNotificationTapped = useCallback((response: Notifications.NotificationResponse) => {
+    console.log('[RootLayout] 👆 Notification tapped:', response);
+    setLastNotificationResponse(response);
+  }, []);
+
   const { pushToken, permissionStatus } = useNotifications({
-    onNotificationReceived: (notification) => {
-      console.log('[RootLayout] 🔔 Notification received:', notification);
-      setLastNotification(notification);
-    },
-    onNotificationTapped: (response) => {
-      console.log('[RootLayout] 👆 Notification tapped:', response);
-      setLastNotificationResponse(response);
-    },
+    onNotificationReceived: handleNotificationReceived,
+    onNotificationTapped: handleNotificationTapped,
   });
 
   useEffect(() => {
