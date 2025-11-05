@@ -45,6 +45,10 @@ export async function initiateGoogleLogin(): Promise<GoogleAuthResult> {
       scopes: ['openid', 'profile', 'email'],
       responseType: AuthSession.ResponseType.Token,
       usePKCE: false,
+      // Force Google to show account selector every time
+      extraParams: {
+        prompt: 'select_account',
+      },
     });
 
     const result = await request.promptAsync(discovery);
