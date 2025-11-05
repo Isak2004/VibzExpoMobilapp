@@ -337,6 +337,55 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      if (__DEV__) console.log('[PlatformWebView] 🚪 Logout detected - clearing WebView data');
+
+      if (webViewRef.current) {
+        // Clear all storage (localStorage, sessionStorage, cookies)
+        const clearStorageScript = `
+          (function() {
+            try {
+              // Clear localStorage
+              localStorage.clear();
+
+              // Clear sessionStorage
+              sessionStorage.clear();
+
+              // Clear cookies by setting them to expire
+              document.cookie.split(";").forEach(function(c) {
+                document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+              });
+
+              console.log('[WebView] Storage and cookies cleared');
+            } catch (e) {
+              console.error('[WebView] Error clearing storage:', e);
+            }
+          })();
+          true;
+        `;
+
+        webViewRef.current.injectJavaScript(clearStorageScript);
+
+        if (__DEV__) console.log('[PlatformWebView] ✅ Storage cleared successfully');
+      }
+
+      // Send confirmation back to web app
+      sendMessageToWebView({
+        type: 'logoutComplete',
+        success: true,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error('[PlatformWebView] ❌ Error clearing WebView data:', error);
+      sendMessageToWebView({
+        type: 'logoutComplete',
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to clear data'
+      });
+    }
+  };
+
   const handleWebViewMessage = async (event: WebViewMessageEvent) => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
@@ -380,6 +429,8 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
         }
       } else if (data.type === 'share') {
         await handleShare(data);
+      } else if (data.type === 'logout') {
+        await handleLogout();
       }
     } catch (error) {
       console.error('[Native App] Error handling WebView message:', error);
