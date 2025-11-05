@@ -18,6 +18,21 @@ export interface GoogleAuthResult {
   error?: string;
 }
 
+// Clear Google OAuth session
+export async function clearGoogleSession(): Promise<void> {
+  try {
+    console.log('[GoogleAuth] 🧹 Clearing Google OAuth session cookies...');
+
+    // This clears Google's authentication cookies
+    await WebBrowser.warmUpAsync();
+    await WebBrowser.coolDownAsync();
+
+    console.log('[GoogleAuth] ✅ Google OAuth session cleared');
+  } catch (error) {
+    console.error('[GoogleAuth] ❌ Error clearing Google session:', error);
+  }
+}
+
 export async function initiateGoogleLogin(): Promise<GoogleAuthResult> {
   try {
     const redirectUri = AuthSession.makeRedirectUri({

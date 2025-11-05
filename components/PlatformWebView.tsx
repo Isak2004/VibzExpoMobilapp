@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Platform, View, StyleSheet, Text, Alert, Share } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
-import { initiateGoogleLogin } from '../utils/googleAuth';
+import { initiateGoogleLogin, clearGoogleSession } from '../utils/googleAuth';
 
 interface NotificationContextType {
   pushToken: string | null;
@@ -342,6 +342,9 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
     console.log('[PlatformWebView] 🚪 LOGOUT CALLED - Starting cache clear process', { timestamp });
 
     try {
+      // Clear Google OAuth session first
+      await clearGoogleSession();
+
       if (webViewRef.current) {
         console.log('[PlatformWebView] 🧹 Clearing WebView storage (localStorage, sessionStorage, cookies)...');
 
@@ -379,6 +382,14 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
         webViewRef.current.injectJavaScript(clearStorageScript);
 
         console.log('[PlatformWebView] ✅ Cache clear command sent to WebView successfully');
+
+        // Wait a moment for the script to execute, then reload
+        setTimeout(() => {
+          if (webViewRef.current) {
+            console.log('[PlatformWebView] 🔄 Reloading WebView to apply cleared state...');
+            webViewRef.current.reload();
+          }
+        }, 300);
       } else {
         console.warn('[PlatformWebView] ⚠️ WebView ref not available, could not clear cache');
       }
@@ -390,7 +401,7 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
         timestamp,
       });
 
-      console.log('[PlatformWebView] ✅ LOGOUT COMPLETE - Cache cleared and confirmation sent', { timestamp });
+      console.log('[PlatformWebView] ✅ LOGOUT COMPLETE - All caches cleared and reload initiated', { timestamp });
     } catch (error) {
       console.error('[PlatformWebView] ❌ LOGOUT FAILED - Error clearing WebView data:', error);
       sendMessageToWebView({
