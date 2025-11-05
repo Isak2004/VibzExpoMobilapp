@@ -338,28 +338,39 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
   };
 
   const handleLogout = async () => {
-    try {
-      if (__DEV__) console.log('[PlatformWebView] 🚪 Logout detected - clearing WebView data');
+    const timestamp = new Date().toISOString();
+    console.log('[PlatformWebView] 🚪 LOGOUT CALLED - Starting cache clear process', { timestamp });
 
+    try {
       if (webViewRef.current) {
+        console.log('[PlatformWebView] 🧹 Clearing WebView storage (localStorage, sessionStorage, cookies)...');
+
         // Clear all storage (localStorage, sessionStorage, cookies)
         const clearStorageScript = `
           (function() {
             try {
               // Clear localStorage
+              const localStorageKeys = Object.keys(localStorage);
               localStorage.clear();
 
               // Clear sessionStorage
+              const sessionStorageKeys = Object.keys(sessionStorage);
               sessionStorage.clear();
 
               // Clear cookies by setting them to expire
-              document.cookie.split(";").forEach(function(c) {
+              const cookies = document.cookie.split(";");
+              cookies.forEach(function(c) {
                 document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
               });
 
-              console.log('[WebView] Storage and cookies cleared');
+              console.log('[WebView] ✅ CACHE CLEARED SUCCESSFULLY', {
+                localStorageKeysCleared: localStorageKeys.length,
+                sessionStorageKeysCleared: sessionStorageKeys.length,
+                cookiesCleared: cookies.length,
+                timestamp: '${timestamp}'
+              });
             } catch (e) {
-              console.error('[WebView] Error clearing storage:', e);
+              console.error('[WebView] ❌ Error clearing storage:', e);
             }
           })();
           true;
@@ -367,17 +378,21 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
         webViewRef.current.injectJavaScript(clearStorageScript);
 
-        if (__DEV__) console.log('[PlatformWebView] ✅ Storage cleared successfully');
+        console.log('[PlatformWebView] ✅ Cache clear command sent to WebView successfully');
+      } else {
+        console.warn('[PlatformWebView] ⚠️ WebView ref not available, could not clear cache');
       }
 
       // Send confirmation back to web app
       sendMessageToWebView({
         type: 'logoutComplete',
         success: true,
-        timestamp: new Date().toISOString(),
+        timestamp,
       });
+
+      console.log('[PlatformWebView] ✅ LOGOUT COMPLETE - Cache cleared and confirmation sent', { timestamp });
     } catch (error) {
-      console.error('[PlatformWebView] ❌ Error clearing WebView data:', error);
+      console.error('[PlatformWebView] ❌ LOGOUT FAILED - Error clearing WebView data:', error);
       sendMessageToWebView({
         type: 'logoutComplete',
         success: false,
