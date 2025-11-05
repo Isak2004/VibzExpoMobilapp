@@ -91,6 +91,11 @@ export default function BrowserScreen() {
 
   return (
     <View style={styles.container}>
+      {/* Hot reload test label - v2.0 */}
+      <View style={styles.reloadIndicator}>
+        <Text style={styles.reloadText}>HOT RELOAD v2.0 ✓</Text>
+      </View>
+
       <View
         style={styles.hiddenTrigger}
         onTouchStart={handleTouchStart}
@@ -165,6 +170,21 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
+  },
+  reloadIndicator: {
+    position: 'absolute',
+    top: 50,
+    right: 10,
+    backgroundColor: '#00FF00',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    zIndex: 9999,
+  },
+  reloadText: {
+    color: '#000000',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   hiddenTrigger: {
     position: 'absolute',
