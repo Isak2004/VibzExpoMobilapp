@@ -35,9 +35,13 @@ export async function clearGoogleSession(): Promise<void> {
 
 export async function initiateGoogleLogin(): Promise<GoogleAuthResult> {
   try {
+    console.log('[GoogleAuth] 🚀 Starting Google OAuth flow...');
+
     const redirectUri = AuthSession.makeRedirectUri({
       scheme: 'vibzworld',
     });
+
+    console.log('[GoogleAuth] 📍 Redirect URI:', redirectUri);
 
     const request = new AuthSession.AuthRequest({
       clientId: GOOGLE_CLIENT_ID,
@@ -45,34 +49,43 @@ export async function initiateGoogleLogin(): Promise<GoogleAuthResult> {
       scopes: ['openid', 'profile', 'email'],
       responseType: AuthSession.ResponseType.Token,
       usePKCE: false,
-      // Force Google to show account selector every time
+      // Force Google to show full consent screen every time (most aggressive)
       extraParams: {
-        prompt: 'select_account',
+        prompt: 'consent',
+        // Also add a timestamp to prevent any caching
+        state: `login_${Date.now()}`,
       },
     });
 
+    console.log('[GoogleAuth] 🔐 Opening Google OAuth prompt with consent required...');
     const result = await request.promptAsync(discovery);
+
+    console.log('[GoogleAuth] 📥 OAuth result type:', result.type);
 
     if (result.type === 'success') {
       const { access_token, id_token } = result.params;
 
+      console.log('[GoogleAuth] ✅ OAuth successful, got tokens');
       return {
         success: true,
         accessToken: access_token,
         idToken: id_token,
       };
     } else if (result.type === 'error') {
+      console.error('[GoogleAuth] ❌ OAuth error:', result.error);
       return {
         success: false,
         error: result.error?.message || 'Authentication failed',
       };
     } else {
+      console.log('[GoogleAuth] ⚠️ OAuth cancelled by user');
       return {
         success: false,
         error: 'Authentication was cancelled',
       };
     }
   } catch (error) {
+    console.error('[GoogleAuth] ❌ Exception during OAuth:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error occurred',
