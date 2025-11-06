@@ -93,7 +93,7 @@ export default function BrowserScreen() {
     <View style={styles.container}>
       {/* Hot reload test label - v2.0 */}
       <View style={styles.reloadIndicator}>
-        <Text style={styles.reloadText}>HOT RELOAD v2.0 ✓</Text>
+        <Text style={styles.reloadText}>HOT RELOAD v4.0 ✓</Text>
       </View>
 
       <View
