@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Platform, View, StyleSheet, Text, Alert, Share } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
+import CookieManager from '@react-native-cookies/cookies';
 import { initiateGoogleLogin, clearGoogleSession } from '../utils/googleAuth';
 
 interface NotificationContextType {
@@ -345,10 +346,15 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
       // Clear Google OAuth session first
       await clearGoogleSession();
 
-      if (webViewRef.current) {
-        console.log('[PlatformWebView] 🧹 Clearing WebView storage (localStorage, sessionStorage, cookies)...');
+      // Clear all cookies using CookieManager (React Native level)
+      console.log('[PlatformWebView] 🍪 Clearing all cookies via CookieManager...');
+      await CookieManager.clearAll();
+      console.log('[PlatformWebView] ✅ All cookies cleared via CookieManager');
 
-        // Clear all storage (localStorage, sessionStorage, cookies)
+      if (webViewRef.current) {
+        console.log('[PlatformWebView] 🧹 Clearing WebView storage (localStorage, sessionStorage, document cookies)...');
+
+        // Clear all storage (localStorage, sessionStorage, and document cookies as backup)
         const clearStorageScript = `
           (function() {
             try {
@@ -360,7 +366,7 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
               const sessionStorageKeys = Object.keys(sessionStorage);
               sessionStorage.clear();
 
-              // Clear cookies by setting them to expire
+              // Clear document cookies as backup (CookieManager should handle this)
               const cookies = document.cookie.split(";");
               cookies.forEach(function(c) {
                 document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
