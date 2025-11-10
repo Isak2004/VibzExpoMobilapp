@@ -91,10 +91,11 @@ export default function BrowserScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Hot reload test label - v2.0 */}
-      <View style={styles.reloadIndicator}>
-        <Text style={styles.reloadText}>HOT RELOAD v4.0 ✓</Text>
-      </View>
+      {__DEV__ && (
+        <View style={styles.reloadIndicator}>
+          <Text style={styles.reloadText}>HOT RELOAD v4.0 ✓</Text>
+        </View>
+      )}
 
       <View
         style={styles.hiddenTrigger}
