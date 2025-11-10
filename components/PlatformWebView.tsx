@@ -340,30 +340,25 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
   const handleLogout = async () => {
     const timestamp = new Date().toISOString();
-    console.log('[PlatformWebView] 🚪 LOGOUT CALLED - Starting cache clear process', { timestamp });
+    if (__DEV__) console.log('[PlatformWebView] 🚪 LOGOUT CALLED - Starting cache clear process', { timestamp });
 
     try {
       // Clear Google OAuth session first
       await clearGoogleSession();
 
       // Clear all cookies using CookieManager (React Native level)
-      console.log('[PlatformWebView] 🍪 Clearing all cookies via CookieManager...');
+      if (__DEV__) console.log('[PlatformWebView] 🍪 Clearing all cookies via CookieManager...');
       await CookieManager.clearAll();
-      console.log('[PlatformWebView] ✅ All cookies cleared via CookieManager');
+      if (__DEV__) console.log('[PlatformWebView] ✅ All cookies cleared via CookieManager');
 
       if (webViewRef.current) {
-        console.log('[PlatformWebView] 🧹 Clearing WebView storage (localStorage, sessionStorage, document cookies)...');
+        if (__DEV__) console.log('[PlatformWebView] 🧹 Clearing WebView storage (localStorage, sessionStorage, document cookies)...');
 
         // Clear all storage (localStorage, sessionStorage, and document cookies as backup)
         const clearStorageScript = `
           (function() {
             try {
-              // Clear localStorage
-              const localStorageKeys = Object.keys(localStorage);
               localStorage.clear();
-
-              // Clear sessionStorage
-              const sessionStorageKeys = Object.keys(sessionStorage);
               sessionStorage.clear();
 
               // Clear document cookies as backup (CookieManager should handle this)
@@ -372,12 +367,9 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
                 document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
               });
 
-              console.log('[WebView] ✅ CACHE CLEARED SUCCESSFULLY', {
-                localStorageKeysCleared: localStorageKeys.length,
-                sessionStorageKeysCleared: sessionStorageKeys.length,
-                cookiesCleared: cookies.length,
-                timestamp: '${timestamp}'
-              });
+              if (window.__DEV__) {
+                console.log('[WebView] ✅ Storage cleared successfully');
+              }
             } catch (e) {
               console.error('[WebView] ❌ Error clearing storage:', e);
             }
@@ -387,17 +379,17 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
 
         webViewRef.current.injectJavaScript(clearStorageScript);
 
-        console.log('[PlatformWebView] ✅ Cache clear command sent to WebView successfully');
+        if (__DEV__) console.log('[PlatformWebView] ✅ Cache clear command sent to WebView successfully');
 
         // Wait a moment for the script to execute, then reload
         setTimeout(() => {
           if (webViewRef.current) {
-            console.log('[PlatformWebView] 🔄 Reloading WebView to apply cleared state...');
+            if (__DEV__) console.log('[PlatformWebView] 🔄 Reloading WebView to apply cleared state...');
             webViewRef.current.reload();
           }
         }, 300);
       } else {
-        console.warn('[PlatformWebView] ⚠️ WebView ref not available, could not clear cache');
+        if (__DEV__) console.warn('[PlatformWebView] ⚠️ WebView ref not available, could not clear cache');
       }
 
       // Send confirmation back to web app
@@ -407,7 +399,7 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
         timestamp,
       });
 
-      console.log('[PlatformWebView] ✅ LOGOUT COMPLETE - All caches cleared and reload initiated', { timestamp });
+      if (__DEV__) console.log('[PlatformWebView] ✅ LOGOUT COMPLETE - All caches cleared and reload initiated', { timestamp });
     } catch (error) {
       console.error('[PlatformWebView] ❌ LOGOUT FAILED - Error clearing WebView data:', error);
       sendMessageToWebView({

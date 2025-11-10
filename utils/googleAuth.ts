@@ -21,13 +21,13 @@ export interface GoogleAuthResult {
 // Clear Google OAuth session
 export async function clearGoogleSession(): Promise<void> {
   try {
-    console.log('[GoogleAuth] 🧹 Clearing Google OAuth session cookies...');
+    if (__DEV__) console.log('[GoogleAuth] 🧹 Clearing Google OAuth session cookies...');
 
     // This clears Google's authentication cookies
     await WebBrowser.warmUpAsync();
     await WebBrowser.coolDownAsync();
 
-    console.log('[GoogleAuth] ✅ Google OAuth session cleared');
+    if (__DEV__) console.log('[GoogleAuth] ✅ Google OAuth session cleared');
   } catch (error) {
     console.error('[GoogleAuth] ❌ Error clearing Google session:', error);
   }
@@ -35,13 +35,13 @@ export async function clearGoogleSession(): Promise<void> {
 
 export async function initiateGoogleLogin(): Promise<GoogleAuthResult> {
   try {
-    console.log('[GoogleAuth] 🚀 Starting Google OAuth flow...');
+    if (__DEV__) console.log('[GoogleAuth] 🚀 Starting Google OAuth flow...');
 
     const redirectUri = AuthSession.makeRedirectUri({
       scheme: 'vibzworld',
     });
 
-    console.log('[GoogleAuth] 📍 Redirect URI:', redirectUri);
+    if (__DEV__) console.log('[GoogleAuth] 📍 Redirect URI:', redirectUri);
 
     const request = new AuthSession.AuthRequest({
       clientId: GOOGLE_CLIENT_ID,
@@ -57,15 +57,15 @@ export async function initiateGoogleLogin(): Promise<GoogleAuthResult> {
       },
     });
 
-    console.log('[GoogleAuth] 🔐 Opening Google OAuth prompt with consent required...');
+    if (__DEV__) console.log('[GoogleAuth] 🔐 Opening Google OAuth prompt with consent required...');
     const result = await request.promptAsync(discovery);
 
-    console.log('[GoogleAuth] 📥 OAuth result type:', result.type);
+    if (__DEV__) console.log('[GoogleAuth] 📥 OAuth result type:', result.type);
 
     if (result.type === 'success') {
       const { access_token, id_token } = result.params;
 
-      console.log('[GoogleAuth] ✅ OAuth successful, got tokens');
+      if (__DEV__) console.log('[GoogleAuth] ✅ OAuth successful, got tokens');
       return {
         success: true,
         accessToken: access_token,
@@ -78,7 +78,7 @@ export async function initiateGoogleLogin(): Promise<GoogleAuthResult> {
         error: result.error?.message || 'Authentication failed',
       };
     } else {
-      console.log('[GoogleAuth] ⚠️ OAuth cancelled by user');
+      if (__DEV__) console.log('[GoogleAuth] ⚠️ OAuth cancelled by user');
       return {
         success: false,
         error: 'Authentication was cancelled',
