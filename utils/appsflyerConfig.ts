@@ -1,7 +1,7 @@
 import appsflyer from 'react-native-appsflyer';
 import { Platform } from 'react-native';
 
-const APPSFLYER_DEV_KEY = 'YOUR_APPSFLYER_DEV_KEY';
+const APPSFLYER_DEV_KEY = '9yGmEt8H2AeJDH6GMzhC8P';
 const APPLE_APP_ID = 'YOUR_APPLE_APP_ID';
 const ANDROID_PACKAGE_NAME = 'world.vibz.browserapp';
 
