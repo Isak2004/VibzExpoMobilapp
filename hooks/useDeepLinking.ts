@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import * as Linking from 'expo-linking';
 import { useRouter } from 'expo-router';
+import { getDeferredDeepLink } from './useAppsflyerDeepLinking';
 
 // Define the domains we handle
 const HANDLED_DOMAINS = [
@@ -15,6 +16,28 @@ export function useDeepLinking() {
   useEffect(() => {
     // Handle initial URL when app is opened from a link
     const handleInitialURL = async () => {
+      // First, check for deferred deep links from AppsFlyer
+      const deferredLink = await getDeferredDeepLink();
+
+      if (deferredLink.deepLinkValue) {
+        if (__DEV__) {
+          console.log('[Deep Link] Processing deferred deep link from AppsFlyer:', deferredLink.deepLinkValue);
+        }
+
+        // Construct full URL from deep link value
+        const fullUrl = deferredLink.deepLinkValue.startsWith('http')
+          ? deferredLink.deepLinkValue
+          : `https://lovenote.vibz.world${deferredLink.deepLinkValue}`;
+
+        if (__DEV__) {
+          console.log('[Deep Link] Navigating to deferred deep link URL:', fullUrl);
+        }
+
+        router.replace(`/?url=${encodeURIComponent(fullUrl)}`);
+        return;
+      }
+
+      // If no deferred deep link, handle normal initial URL
       const initialUrl = await Linking.getInitialURL();
       if (initialUrl) {
         if (__DEV__) console.log('[Deep Link] Initial URL:', initialUrl);

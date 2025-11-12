@@ -9,12 +9,15 @@ import { useFrameworkReady } from '@/hooks/useFrameworkReady';
 import { useDeepLinking } from '@/hooks/useDeepLinking';
 import { useNotifications } from '@/hooks/useNotifications';
 import { NotificationProvider } from '@/contexts/NotificationContext';
+import { initializeAppsFlyer } from '@/utils/appsflyerConfig';
+import { useAppsflyerDeepLinking } from '@/hooks/useAppsflyerDeepLinking';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   useFrameworkReady();
   useDeepLinking();
+  useAppsflyerDeepLinking();
   const [appReady, setAppReady] = useState(false);
 
   const [lastNotification, setLastNotification] = useState<Notifications.Notification | null>(null);
@@ -66,6 +69,7 @@ export default function RootLayout() {
   useEffect(() => {
     async function prepare() {
       try {
+        initializeAppsFlyer();
         await new Promise(resolve => setTimeout(resolve, 1000));
         setAppReady(true);
       } catch (e) {

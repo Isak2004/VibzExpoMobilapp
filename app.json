@@ -24,10 +24,13 @@
       "associatedDomains": [
         "applinks:loveappneo.vibz.world",
         "applinks:lovenote.vibz.world",
-        "applinks:openinapp.vibz.world"
+        "applinks:openinapp.vibz.world",
+        "applinks:vibzworld.onelink.me"
       ],
       "infoPlist": {
-        "UIBackgroundModes": ["remote-notification"]
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "androidStatusBar": {
@@ -65,6 +68,10 @@
             {
               "scheme": "https",
               "host": "openinapp.vibz.world"
+            },
+            {
+              "scheme": "https",
+              "host": "vibzworld.onelink.me"
             }
           ],
           "category": [
@@ -90,6 +97,12 @@
           "icon": "./assets/images/icon.png",
           "color": "#ffffff",
           "sounds": []
+        }
+      ],
+      [
+        "react-native-appsflyer",
+        {
+          "strictMode": false
         }
       ]
     ],
