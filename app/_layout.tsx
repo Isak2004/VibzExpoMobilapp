@@ -39,6 +39,20 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    async function checkLastNotification() {
+      if (Platform.OS === 'web') return;
+
+      const response = await Notifications.getLastNotificationResponseAsync();
+      if (response) {
+        if (__DEV__) console.log('[RootLayout] 🚀 App opened from notification (killed state):', response);
+        setLastNotificationResponse(response);
+      }
+    }
+
+    checkLastNotification();
+  }, []);
+
+  useEffect(() => {
     if (__DEV__) console.log('[RootLayout] 🔄 Context state updated:', {
       pushToken,
       permissionStatus,
