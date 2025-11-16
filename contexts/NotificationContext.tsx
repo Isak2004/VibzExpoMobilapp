@@ -6,6 +6,7 @@ interface NotificationContextType {
   permissionStatus: string;
   lastNotification: Notifications.Notification | null;
   lastNotificationResponse: Notifications.NotificationResponse | null;
+  notificationNavigationUrl: string | null;
 }
 
 const NotificationContext = createContext<NotificationContextType | undefined>(undefined);

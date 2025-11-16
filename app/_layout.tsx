@@ -11,6 +11,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { initializeAppsFlyer } from '@/utils/appsflyerConfig';
 import { useAppsflyerDeepLinking } from '@/hooks/useAppsflyerDeepLinking';
+import { extractNotificationData, getNavigationUrlFromNotification } from '@/utils/notificationNavigation';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -22,6 +23,7 @@ export default function RootLayout() {
 
   const [lastNotification, setLastNotification] = useState<Notifications.Notification | null>(null);
   const [lastNotificationResponse, setLastNotificationResponse] = useState<Notifications.NotificationResponse | null>(null);
+  const [notificationNavigationUrl, setNotificationNavigationUrl] = useState<string | null>(null);
 
   const handleNotificationReceived = useCallback((notification: Notifications.Notification) => {
     if (__DEV__) console.log('[RootLayout] 🔔 Notification received:', notification);
@@ -31,6 +33,15 @@ export default function RootLayout() {
   const handleNotificationTapped = useCallback((response: Notifications.NotificationResponse) => {
     if (__DEV__) console.log('[RootLayout] 👆 Notification tapped:', response);
     setLastNotificationResponse(response);
+
+    const notificationData = extractNotificationData(response);
+    if (notificationData) {
+      const navigationResult = getNavigationUrlFromNotification(notificationData);
+      if (navigationResult) {
+        if (__DEV__) console.log('[RootLayout] 🧭 Notification navigation URL:', navigationResult.url);
+        setNotificationNavigationUrl(navigationResult.url);
+      }
+    }
   }, []);
 
   const { pushToken, permissionStatus } = useNotifications({
@@ -46,6 +57,15 @@ export default function RootLayout() {
       if (response) {
         if (__DEV__) console.log('[RootLayout] 🚀 App opened from notification (killed state):', response);
         setLastNotificationResponse(response);
+
+        const notificationData = extractNotificationData(response);
+        if (notificationData) {
+          const navigationResult = getNavigationUrlFromNotification(notificationData);
+          if (navigationResult) {
+            if (__DEV__) console.log('[RootLayout] 🧭 Initial navigation URL from notification:', navigationResult.url);
+            setNotificationNavigationUrl(navigationResult.url);
+          }
+        }
       }
     }
 
@@ -111,6 +131,7 @@ export default function RootLayout() {
         permissionStatus,
         lastNotification,
         lastNotificationResponse,
+        notificationNavigationUrl,
       }}
     >
       <Stack screenOptions={{ headerShown: false }}>

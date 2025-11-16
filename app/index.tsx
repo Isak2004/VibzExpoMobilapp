@@ -24,6 +24,10 @@ export default function BrowserScreen() {
   const { url } = useLocalSearchParams<{ url?: string }>();
   const notificationContext = useNotificationContext();
   const [currentUrl, setCurrentUrl] = useState(() => {
+    if (notificationContext.notificationNavigationUrl) {
+      if (__DEV__) console.log('[Browser] Initializing with notification URL:', notificationContext.notificationNavigationUrl);
+      return notificationContext.notificationNavigationUrl;
+    }
     if (url && typeof url === 'string') {
       if (__DEV__) console.log('[Browser] Initializing with deep link URL:', url);
       return decodeURIComponent(url);
@@ -32,12 +36,15 @@ export default function BrowserScreen() {
   });
 
   useEffect(() => {
-    if (url && typeof url === 'string') {
+    if (notificationContext.notificationNavigationUrl) {
+      if (__DEV__) console.log('[Browser] Notification URL changed, updating to:', notificationContext.notificationNavigationUrl);
+      setCurrentUrl(notificationContext.notificationNavigationUrl);
+    } else if (url && typeof url === 'string') {
       const decodedUrl = decodeURIComponent(url);
       if (__DEV__) console.log('[Browser] Deep link URL changed, updating to:', decodedUrl);
       setCurrentUrl(decodedUrl);
     }
-  }, [url]);
+  }, [url, notificationContext.notificationNavigationUrl]);
 
   const formatUrl = (inputUrl: string): string => {
     if (!inputUrl.trim()) return '';

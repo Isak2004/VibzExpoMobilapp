@@ -9,6 +9,7 @@ interface NotificationContextType {
   permissionStatus: string;
   lastNotification: any;
   lastNotificationResponse: any;
+  notificationNavigationUrl: string | null;
 }
 
 interface PlatformWebViewProps {
@@ -260,6 +261,7 @@ const PlatformWebView = React.forwardRef<any, PlatformWebViewProps>((props, ref)
   useEffect(() => {
     if (notificationContext?.lastNotificationResponse && webViewRef.current) {
       const notificationData = notificationContext.lastNotificationResponse.notification.request.content.data;
+      if (__DEV__) console.log('[PlatformWebView] Sending notification tap data to WebView:', notificationData);
       sendMessageToWebView({
         type: 'notificationTapped',
         data: notificationData,
