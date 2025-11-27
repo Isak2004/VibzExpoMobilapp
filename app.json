@@ -36,53 +36,52 @@
     "androidStatusBar": {
       "hidden": true
     },
-"android": {
+    "android": {
       "package": "world.vibz.browserapp",
       "googleServicesFile": "./google-services.json",
       "splash": {
         "image": "./assets/images/splash.png",
         "resizeMode": "cover",
         "backgroundColor": "#ffffff"
-        },
-        "enableFullBackup": false
-    },
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/images/icon.png",
-        "backgroundColor": "#ffffff"
       },
-      "permissions": [
-        "RECEIVE_BOOT_COMPLETED",
-        "POST_NOTIFICATIONS"
-      ],
-      "intentFilters": [
-        {
-          "action": "VIEW",
-          "autoVerify": true,
-          "data": [
-            {
-              "scheme": "https",
-              "host": "loveappneo.vibz.world"
-            },
-            {
-              "scheme": "https",
-              "host": "lovenote.vibz.world"
-            },
-            {
-              "scheme": "https",
-              "host": "openinapp.vibz.world"
-            },
-            {
-              "scheme": "https",
-              "host": "vibzworld.onelink.me"
-            }
-          ],
-          "category": [
-            "BROWSABLE",
-            "DEFAULT"
-          ]
-        }
-      ]
+      "enableFullBackup": false
     },
+    "adaptiveIcon": {
+      "foregroundImage": "./assets/images/icon.png",
+      "backgroundColor": "#ffffff"
+    },
+    "permissions": [
+      "RECEIVE_BOOT_COMPLETED",
+      "POST_NOTIFICATIONS"
+    ],
+    "intentFilters": [
+      {
+        "action": "VIEW",
+        "autoVerify": true,
+        "data": [
+          {
+            "scheme": "https",
+            "host": "loveappneo.vibz.world"
+          },
+          {
+            "scheme": "https",
+            "host": "lovenote.vibz.world"
+          },
+          {
+            "scheme": "https",
+            "host": "openinapp.vibz.world"
+          },
+          {
+            "scheme": "https",
+            "host": "vibzworld.onelink.me"
+          }
+        ],
+        "category": [
+          "BROWSABLE",
+          "DEFAULT"
+        ]
+      }
+    ],
     "web": {
       "bundler": "metro",
       "output": "single",
