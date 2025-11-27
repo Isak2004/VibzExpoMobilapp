@@ -36,14 +36,16 @@
     "androidStatusBar": {
       "hidden": true
     },
-    "android": {
+"android": {
       "package": "world.vibz.browserapp",
       "googleServicesFile": "./google-services.json",
       "splash": {
         "image": "./assets/images/splash.png",
         "resizeMode": "cover",
         "backgroundColor": "#ffffff"
-      },
+        },
+        "enableFullBackup": false
+    },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
