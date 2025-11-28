@@ -44,6 +44,7 @@
         "resizeMode": "cover",
         "backgroundColor": "#ffffff"
       },
+      // --- CORRECTED LOCATION FOR SCHEMA ---
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
@@ -80,6 +81,7 @@
           ]
         }
       ]
+      // --- REMOVED "enableFullBackup": false ---
     },
     "web": {
       "bundler": "metro",
