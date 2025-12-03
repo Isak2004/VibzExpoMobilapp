@@ -1,4 +1,5 @@
 import { useEffect, useCallback } from 'react';
+import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { appsflyer, AppsflyerDeepLinkData } from '@/utils/appsflyerConfig';
 
@@ -10,8 +11,20 @@ export interface DeferredDeepLinkResult {
   isDeferred: boolean;
 }
 
+function constructFullUrl(deepLinkValue: string): string {
+  if (deepLinkValue.startsWith('http')) {
+    return deepLinkValue;
+  }
+  if (deepLinkValue.startsWith('/')) {
+    return `https://lovenote.vibz.world${deepLinkValue}`;
+  }
+  return `https://lovenote.vibz.world/${deepLinkValue}`;
+}
+
 export function useAppsflyerDeepLinking() {
-  const handleDeepLink = useCallback(async (data: AppsflyerDeepLinkData) => {
+  const router = useRouter();
+
+  const handleDeepLinkNavigation = useCallback(async (data: AppsflyerDeepLinkData) => {
     if (__DEV__) {
       console.log('[AppsFlyer Deep Link] Received deep link data:', data);
     }
@@ -25,20 +38,23 @@ export function useAppsflyerDeepLinking() {
       return;
     }
 
+    const fullUrl = constructFullUrl(deepLinkValue);
+
     const isFirstLaunch = await AsyncStorage.getItem(FIRST_LAUNCH_KEY);
 
     if (!isFirstLaunch) {
       if (__DEV__) {
-        console.log('[AppsFlyer Deep Link] First launch - storing deferred deep link:', deepLinkValue);
+        console.log('[AppsFlyer Deep Link] First launch - storing deferred deep link:', fullUrl);
       }
-      await AsyncStorage.setItem(DEFERRED_DEEP_LINK_KEY, deepLinkValue);
+      await AsyncStorage.setItem(DEFERRED_DEEP_LINK_KEY, fullUrl);
       await AsyncStorage.setItem(FIRST_LAUNCH_KEY, 'true');
     } else {
       if (__DEV__) {
-        console.log('[AppsFlyer Deep Link] Not first launch - direct deep link:', deepLinkValue);
+        console.log('[AppsFlyer Deep Link] App already running - navigating to direct deep link:', fullUrl);
       }
+      router.replace(`/?url=${encodeURIComponent(fullUrl)}`);
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     const unsubscribeDeepLink = appsflyer.onDeepLink((res) => {
@@ -47,7 +63,7 @@ export function useAppsflyerDeepLinking() {
       }
 
       if (res?.data) {
-        handleDeepLink(res.data as AppsflyerDeepLinkData);
+        handleDeepLinkNavigation(res.data as AppsflyerDeepLinkData);
       }
     });
 
@@ -63,7 +79,7 @@ export function useAppsflyerDeepLinking() {
           if (__DEV__) {
             console.log('[AppsFlyer] First launch detected via install conversion data');
           }
-          handleDeepLink(conversionData);
+          handleDeepLinkNavigation(conversionData);
         }
       }
     });
@@ -76,7 +92,7 @@ export function useAppsflyerDeepLinking() {
         unsubscribeInstall();
       }
     };
-  }, [handleDeepLink]);
+  }, [handleDeepLinkNavigation]);
 }
 
 export async function getDeferredDeepLink(): Promise<DeferredDeepLinkResult> {
